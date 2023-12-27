@@ -2,34 +2,39 @@ from models.main import Model
 from models.auth import Auth
 from views.main import View
 
-from .home import HomeController
+from .stage import StageController
 from .signin import SignInController
 from .signup import SignUpController
 
 
 class Controller:
     def __init__(self, model: Model, view: View) -> None:
+        print(f'Controller: __init__()')
         self.view = view
         self.model = model
         self.signin_controller = SignInController(model, view)
         self.signup_controller = SignUpController(model, view)
-        self.home_controller = HomeController(model, view)
+        self.stage_controller = StageController(model, view)
 
         self.model.auth.add_event_listener("auth_changed", self.auth_state_listener)
 
     def auth_state_listener(self, data: Auth) -> None:
-        if data.is_logged_in:
-            self.home_controller.update_view()
-            self.view.switch("home")
+        print(f'Controller: auth_state_listener({data})')
+        self.stage_controller.update_view()
+        if data.is_stage_in:
+            self.stage_controller.update_view()
+            self.view.switch('flow')
         else:
-            self.view.switch("signin")
+            self.view.switch("start")
 
     def start(self) -> None:
         # Here, you can do operations required before launching the gui, for example,
         # self.model.auth.load_auth_state()
-        if self.model.auth.is_logged_in:
-            self.view.switch("home")
-        else:
-            self.view.switch("signin")
+        print(f'Controller: start()')
+        self.view.switch("start")
+        # if self.model.auth.is_logged_in:
+        #     self.view.switch("home")
+        # else:
+        #     self.view.switch("start")
 
         self.view.start_mainloop()

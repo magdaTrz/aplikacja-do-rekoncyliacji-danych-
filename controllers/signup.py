@@ -1,10 +1,11 @@
 from models.main import Model
-from models.auth import User
+from models.auth import Report
 from views.main import View
 
 
 class SignUpController:
     def __init__(self, model: Model, view: View):
+        print(f'SignUpController: __init__()')
         self.model = model
         self.view = view
         self.frame = self.view.frames["signup"]
@@ -12,13 +13,16 @@ class SignUpController:
 
     def _bind(self) -> None:
         """Binds controller functions with respective buttons in the view"""
+        print(f'SignUpController: _bind()')
         self.frame.signup_btn.config(command=self.signup)
         self.frame.signin_btn.config(command=self.signin)
 
     def signin(self) -> None:
+        print(f'SignUpController: signin()')
         self.view.switch("signin")
 
     def signup(self) -> None:
+        print(f'SignUpController: signup()')
         data = {
             "fullname": self.frame.fullname_input.get(),
             "username": self.frame.username_input.get(),
@@ -26,12 +30,15 @@ class SignUpController:
             "has_agreed": self.frame.has_agreed.get(),
         }
         print(data)
-        user: User = {"username": data["username"]}
+        user: Report = {"username": data["username"]}
         self.model.auth.login(user)
         self.clear_form()
-        
-    
+
+    def signup(self) -> None:
+        print(f'SignUpController: signup()')
+
     def clear_form(self) -> None:
+        print(f'SignUpController: clear_form()')
         fullname = self.frame.fullname_input.get()
         username = self.frame.username_input.get()
         password = self.frame.password_input.get()

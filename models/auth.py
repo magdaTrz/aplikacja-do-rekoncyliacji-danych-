@@ -2,22 +2,26 @@ from typing import TypedDict, Union
 from .base import ObservableModel
 
 
-class User(TypedDict):
-    username: str
+class Report(TypedDict):
+    stage_str: str
+    flow_str: str
 
 
 class Auth(ObservableModel):
     def __init__(self):
+        print(f'Auth: __init__()')
         super().__init__()
-        self.is_logged_in = False
-        self.current_user: Union[User, None] = None
+        self.is_stage_in = False
+        self.current_report: Union[Report, None] = None
 
-    def login(self, user: User) -> None:
-        self.is_logged_in = True
-        self.current_user = user
+    def login(self, report: Report) -> None:
+        print(f'Auth: login()')
+        self.is_stage_in = True
+        self.current_report = report
         self.trigger_event("auth_changed")
 
     def logout(self) -> None:
-        self.is_logged_in = False
-        self.current_user = None
+        print(f'Auth: logout()')
+        self.is_stage_in = False
+        self.current_report = None
         self.trigger_event("auth_changed")

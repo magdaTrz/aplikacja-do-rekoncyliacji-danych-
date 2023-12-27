@@ -4,6 +4,7 @@ from tkinter import Frame, Label, Entry, Checkbutton, Button, BooleanVar
 class SignUpView(Frame):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        print(f'SignUpView: __init__()')
 
         self.grid_columnconfigure(0, weight=0)
         self.grid_columnconfigure(1, weight=1)
