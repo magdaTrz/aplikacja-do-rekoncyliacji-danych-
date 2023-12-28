@@ -1,7 +1,6 @@
 from tkinter import Frame, Label, Button
 # import customtkinter
 
-# Lista nazw i tekstów przycisków
 button_data = [
     {"name": "koi_btn", "text": "Klienci i Instytucje"},
     {"name": "umo_btn", "text": "Umowy"},

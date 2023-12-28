@@ -32,9 +32,4 @@ class Controller:
         # self.model.auth.load_auth_state()
         print(f'Controller: start()')
         self.view.switch("start")
-        # if self.model.auth.is_logged_in:
-        #     self.view.switch("home")
-        # else:
-        #     self.view.switch("start")
-
         self.view.start_mainloop()
