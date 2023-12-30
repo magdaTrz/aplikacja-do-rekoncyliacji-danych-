@@ -26,21 +26,19 @@ class StageController:
         self.frame.back_btn.config(command=self.handle_back)
 
     def handle_back(self) -> None:
-        current_report = self.model.auth.current_report
-        if current_report:
-            current_report['stage_str'] = None
-            current_report['flow_str'] = None
+        self.model.report_model.report_clear()
+        # current_report = self.model.auth.current_report
+        # if current_report:
+        #     current_report['stage_str'] = None
+        #     current_report['flow_str'] = None
         self.view.switch('start')
 
-    def logout(self) -> None:
-        print(f'StageController: logout()')
-        self.model.auth.logout()
-
     def handle_selected_stage(self, stage: str) -> None:
-        print(f'StageController: handle_selected_stage({stage})')
-        report: Report = {'stage_str': stage,
-                          'flow_str': ''}
-        self.model.auth.stage_save(report)
+        print(f'StageController: handle_selected_stage({stage=})')
+        if stage == 'load':
+            self.view.switch('flow_load')
+        elif stage == 'end':
+            self.view.switch('flow_end')
 
     def update_view(self):
         print(f'StageController: update_view()')
