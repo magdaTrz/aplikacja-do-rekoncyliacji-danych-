@@ -9,7 +9,6 @@ from .signup import SignUpController
 
 class Controller:
     def __init__(self, model: Model, view: View) -> None:
-        print(f'Controller: __init__()')
         self.view = view
         self.model = model
         self.signin_controller = SignInController(model, view)

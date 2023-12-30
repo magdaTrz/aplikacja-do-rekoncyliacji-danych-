@@ -4,7 +4,6 @@ from tkinter import Frame, Label, Button, PhotoImage
 class HomeView(Frame):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        print(f'HomeView: __init__()')
         # Load the background image
         # self.background_image = PhotoImage(file=r"C:\Users\48505\PycharmProjects\tkinter-multiframe-mvc\red2.png")
 

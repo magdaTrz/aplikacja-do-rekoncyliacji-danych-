@@ -13,7 +13,6 @@ class ObservableModel:
     """
 
     def __init__(self):
-        print(f'ObservableModel: __init__()')
         self._event_listeners: dict[str, list[Callable[[Any], None]]] = {}
 
     def add_event_listener(self, event: str, fn: Callable[[Self], None]) -> Callable:
@@ -39,7 +38,7 @@ class ObservableModel:
         return lambda: self._event_listeners[event].remove(fn)
 
     def trigger_event(self, event: str) -> None:
-        print(f'ObservableModel: trigger_event()')
+        print(f'ObservableModel: trigger_event({event})')
         if event not in self._event_listeners.keys():
             return
 

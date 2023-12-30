@@ -4,7 +4,6 @@ import pandas
 
 class SupportFiles(ObservableModel):
     def __init__(self):
-        print(f'SupportFiles: __init__()')
         super().__init__()
         self.data_koi = None
 

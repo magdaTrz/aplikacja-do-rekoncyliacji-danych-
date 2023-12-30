@@ -13,7 +13,6 @@ button_data = [
 class FlowView(Frame):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        print(f'FlowView: __init__()')
 
         self.grid_columnconfigure(0, weight=0)
 

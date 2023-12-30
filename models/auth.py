@@ -9,7 +9,6 @@ class Report(TypedDict):
 
 class Auth(ObservableModel):
     def __init__(self):
-        print(f'Auth: __init__()')
         super().__init__()
         self.is_stage_in = False
         self.current_report: Union[Report, None] = None

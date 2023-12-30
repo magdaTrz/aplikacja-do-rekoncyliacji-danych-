@@ -7,9 +7,9 @@ import os
 
 current_working_dir = os.getcwd()
 
+
 class StageController:
     def __init__(self, model: Model, view: View) -> None:
-        print(f'StageController: __init__()')
         self.model = model
         self.view = view
         self.frame = self.view.frames["stage"]
@@ -17,7 +17,6 @@ class StageController:
 
     def _bind(self) -> None:
         """Binds controller functions with respective buttons in the view"""
-        print(f'StageController: _bind()')
         self.frame.supportfile_btn.config(command=self.handle_generate_support_files)
         self.frame.supportfile_filedialog_btn.config(command=self.choose_file)
 
@@ -69,6 +68,7 @@ class StageController:
         if success:
             self.frame.supportfile_filedialog_label.config(text=f"Wybrano: {file_path}")
             data = self.model.support_files.get_data()
+
         else:
             self.frame.supportfile_filedialog_label.config(text=f"Nie znaleziono pliku potrzebnego do wygenerowania "
                                                                 f"plików pomocniczych. ")

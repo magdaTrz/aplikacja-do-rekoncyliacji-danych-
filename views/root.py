@@ -5,7 +5,6 @@ from tkinter import Tk
 class Root(Tk):
     def __init__(self):
         super().__init__()
-        print(f'Root: __init__()')
 
         start_width = 720
         min_width = start_width - 10

@@ -16,7 +16,6 @@ class Frames(TypedDict):
 
 class View:
     def __init__(self):
-        print(f'View: __init__()')
         self.root = Root()
         self.frames: Frames = {}  # type: ignore
 
@@ -26,7 +25,6 @@ class View:
         self._add_frame(SignUpView, "signup")
 
     def _add_frame(self, Frame, name: str) -> None:
-        print(f'View: _add_frame({name})')
         self.frames[name] = Frame(self.root)
         self.frames[name].grid(row=0, column=0, sticky="nsew")
 
@@ -36,5 +34,4 @@ class View:
         frame.tkraise()
 
     def start_mainloop(self) -> None:
-        print(f'View: start_mainloop()')
         self.root.mainloop()
