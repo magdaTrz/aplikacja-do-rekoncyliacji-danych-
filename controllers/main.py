@@ -1,8 +1,11 @@
 from models.main import Model
 from models.auth import Auth
+from models.auth import ReportModel
 from views.main import View
 
 from .stage import StageController
+from .flow_load import FlowLoadController
+from .flow_end import FlowEndController
 from .signin import SignInController
 from .signup import SignUpController
 
@@ -14,6 +17,8 @@ class Controller:
         self.signin_controller = SignInController(model, view)
         self.signup_controller = SignUpController(model, view)
         self.stage_controller = StageController(model, view)
+        self.flow_load_controller = FlowLoadController(model, view)
+        self.flow_end_controller = FlowEndController(model, view)
 
         # self.model.auth.add_event_listener("auth_changed", self.auth_state_listener)
         self.model.report_model.add_event_listener("flow_changed", self.flow_state_listener)

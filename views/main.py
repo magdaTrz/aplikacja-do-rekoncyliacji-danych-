@@ -5,12 +5,15 @@ from .root import Root
 from .stage import StageView
 from .start import StartView
 from .signup import SignUpView
-from .flow import FlowView
+from .flow import FlowLoadView
+from .flow import FlowEndView
+
 
 class Frames(TypedDict):
     start: StartView
     stage: StageView
-    flow: FlowView
+    flow_load: FlowLoadView
+    flow_end: FlowEndView
     signup: SignUpView
 
 
@@ -21,7 +24,8 @@ class View:
 
         self._add_frame(StartView, 'start')
         self._add_frame(StageView, 'stage')
-        self._add_frame(FlowView, 'flow')
+        self._add_frame(FlowLoadView, 'flow_load')
+        self._add_frame(FlowEndView, 'flow_end')
         self._add_frame(SignUpView, "signup")
 
     def _add_frame(self, Frame, name: str) -> None:

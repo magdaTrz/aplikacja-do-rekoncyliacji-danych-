@@ -1,32 +1,77 @@
 from tkinter import Frame, Label, Button
-# import customtkinter
 
 button_data = [
     {"name": "koi_btn", "text": "Klienci i Instytucje"},
     {"name": "umo_btn", "text": "Umowy"},
     {"name": "ksgpw_btn", "text": "Księgowania PW"},
     {"name": "ksgfin_btn", "text": "Ksiegowania Fin"},
-    {"name": "umo_btn", "text": "Umowy"},
+    {"name": "mate_btn", "text": "Baza Mate"},
 ]
 
 
-class FlowView(Frame):
+class FlowLoadView(Frame):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.grid_columnconfigure(0, weight=0)
 
-        self.header = Label(self, text="Flow")
-        self.header.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+        self.back_btn = Button(self, text="Cofnij")
+        self.back_btn.grid(row=1, column=0, padx=10, pady=10)
+
+        self.greeting = Label(self, text="Raport GoForLoad")
+        self.greeting.grid(row=2, column=0, padx=10, pady=10, sticky="ew")
+
+        self.header = Label(self, text="Wybierz przepływ:")
+        self.header.grid(row=3, column=0, padx=10, pady=10, sticky="ew")
+
+        # self.koi_btn = Button(self, text='Klienci i Instytucje')
+        # self.koi_btn.grid(row=4, column=0, padx=10, pady=10, sticky="ew")
+
+        self.header_filedialog = Label(self, text="")
+        self.header_filedialog.grid(row=3, column=2, padx=10, pady=10, sticky="ew")
+
+        self.filedialog_src_btn = Button(self, text='')
+        self.filedialog_src_btn.grid(row=4, column=2, padx=10, pady=1, sticky="ew")
+        self.filedialog_src_label = Label(self, text='')
+        self.filedialog_src_label.grid(row=4, column=3, padx=10, pady=1, sticky="ew")
+
+        self.filedialog_ext_btn = Button(self, text='')
+        self.filedialog_ext_btn.grid(row=5, column=2, padx=10, pady=1, sticky="ew")
+        self.filedialog_ext_label = Label(self, text='')
+        self.filedialog_ext_label.grid(row=5, column=3, padx=10, pady=1, sticky="ew")
+
+        for i, data in enumerate(button_data):
+            button = Button(self, text=data["text"])
+            setattr(self, data["name"], button)
+            button.grid(row=i + 4, column=0, padx=10, pady=10)
+
+        self.start_btn = Button(self, text='')
+
+
+class FlowEndView(Frame):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.grid_columnconfigure(0, weight=0)
 
         self.back_btn = Button(self, text="Cofnij")
         self.back_btn.grid(row=1, column=0, padx=10, pady=10)
 
-        self.greeting = Label(self, text="")
+        self.greeting = Label(self, text="Raport EndOfDay")
         self.greeting.grid(row=2, column=0, padx=10, pady=10, sticky="ew")
 
-        for data in button_data:
+        self.header = Label(self, text="Wybierz przepływ:")
+        self.header.grid(row=3, column=0, padx=10, pady=10, sticky="ew")
+
+        # self.koi_btn = Button(self, text='Klienci i Instytucje')
+        # self.koi_btn.grid(row=4, column=0, padx=10, pady=10, sticky="ew")
+
+        self.filedialog_ext_btn = Button(self, text='')
+        self.filedialog_ext_btn.grid(row=4, column=1, padx=1, pady=1, sticky="ew")
+        self.filedialog_tgt_btn = Button(self, text='')
+        self.filedialog_tgt_btn.grid(row=5, column=1, padx=1, pady=1, sticky="ew")
+
+        for i, data in enumerate(button_data):
             button = Button(self, text=data["text"])
             setattr(self, data["name"], button)
-            button.grid(row=len(button_data) + 2, column=0, padx=10, pady=10)
-
+            button.grid(row=i + 4, column=0, padx=10, pady=10)
