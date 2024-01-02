@@ -1,5 +1,8 @@
-from tkinter import Frame, Label, Button, PhotoImage
-from tkinter import ttk
+import tkinter as tk
+from tkinter import Frame, Label, Button, PhotoImage, font, ttk
+from PIL import Image, ImageTk
+
+import paths
 
 # import customtkinter
 
@@ -8,22 +11,23 @@ class StartView(Frame):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.grid_columnconfigure(0, weight=0)
-        self.grid_columnconfigure(1, weight=1)
-        # Load the background image
-        self.background_image = PhotoImage(file=r"C:\Users\48505\PycharmProjects\tkinter-multiframe-mvc\red3.png")
-        self.background_image = self.background_image.subsample(int(self.background_image.width() / 720),
-                                                                int(self.background_image.height() / 480))
+        self.background_image = PhotoImage(file=paths.path_background)
+        resized_image = Image.open(paths.path_background)
+        self.background_image = ImageTk.PhotoImage(resized_image)
 
-        # Create a label to display the background image
-        self.background_label = Label(self, image=self.background_image)
-        # self.background_label = customtkinter.CTkLabel(self, image=self.background_image)
+        self.background_label = tk.Label(self, image=self.background_image)
         self.background_label.place(relwidth=1, relheight=1)
 
-        self.start_btn = Button(self, text="Start")
-        self.start_btn.grid(row=3, column=1, padx=0, pady=10, sticky="w")
+        start_font = font.Font(family='Bahnschrift SemiBold', size=16)
+        self.start_btn = ttk.Button(self, text="Start")
+        self.start_btn.place(x=80, y=100, width=150, height=40)
 
-        self.signup_option_label = Label(self, text="Don't have an account?")
-        self.signup_btn = Button(self, text="Sign Up")
-        self.signup_option_label.grid(row=4, column=1, sticky="w")
-        self.signup_btn.grid(row=5, column=1, sticky="w")
+        photo_acn = ImageTk.PhotoImage(Image.open(paths.path_acn))
+        photo_sbm = ImageTk.PhotoImage(Image.open(paths.path_sbm))
+
+        self.label_acn = ttk.Label(self, image=photo_acn)
+        self.label_acn.image = photo_acn
+        self.label_sbm = ttk.Label(self, image=photo_sbm)
+        self.label_sbm.image = photo_sbm
+        self.label_acn.place(x=20, y=260, width=210, height=180)
+        self.label_sbm.place(x=240, y=260, width=210, height=180)
