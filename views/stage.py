@@ -1,5 +1,4 @@
-from tkinter import Frame, Label, Button, PhotoImage
-# import customtkinter
+from tkinter import Frame, Label, Button, PhotoImage, ttk
 
 
 class StageView(Frame):
@@ -22,6 +21,8 @@ class StageView(Frame):
 
         self.supportfile_filedialog_label = Label(self, text="")
         self.supportfile_filedialog_label.grid(row=3, column=1, padx=10, pady=10, sticky="ew")
+
+        self.progress_bar = ttk.Progressbar(self, orient="horizontal", length=300, mode="determinate")
 
         self.header = Label(self, text="Wybierz etap:")
         self.header.grid(row=4, column=0, padx=10, pady=10, sticky="ew")

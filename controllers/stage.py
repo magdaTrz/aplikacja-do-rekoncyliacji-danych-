@@ -1,15 +1,15 @@
+import time
+
 from models.main import Model
-from models.auth import Report
+from paths import path_support_files
 from views.main import View
 from tkinter import filedialog
-
-import os
-
-current_working_dir = os.getcwd()
+from threading import Thread
 
 
 class StageController:
     def __init__(self, model: Model, view: View) -> None:
+        self.file_path = path_support_files
         self.model = model
         self.view = view
         self.frame = self.view.frames["stage"]
@@ -17,7 +17,7 @@ class StageController:
 
     def _bind(self) -> None:
         """Binds controller functions with respective buttons in the view"""
-        self.frame.supportfile_btn.config(command=self.handle_generate_support_files)
+        self.frame.supportfile_btn.config(command=self.start_generating_support_files)
         self.frame.supportfile_filedialog_btn.config(command=self.choose_file)
 
         self.frame.reportload_btn.config(command=lambda: self.handle_selected_stage(stage='load'))
@@ -27,10 +27,6 @@ class StageController:
 
     def handle_back(self) -> None:
         self.model.report_model.report_clear()
-        # current_report = self.model.auth.current_report
-        # if current_report:
-        #     current_report['stage_str'] = None
-        #     current_report['flow_str'] = None
         self.view.switch('start')
 
     def handle_selected_stage(self, stage: str) -> None:
@@ -40,15 +36,6 @@ class StageController:
         elif stage == 'end':
             self.view.switch('flow_end')
 
-    def update_view(self):
-        print(f'StageController: update_view()')
-        current_report = self.model.auth.current_report
-        if current_report:
-            stage = current_report["stage_str"]
-            self.frame.greeting.config(text=f"Welcome, {stage}!")
-        else:
-            self.frame.greeting.config(text=f"Brak")
-
     def choose_file(self) -> None:
         """File selection dialog"""
         print(f'StageController: choose_file()')
@@ -57,17 +44,35 @@ class StageController:
             filetypes=[('Pliki tekstowe', '*.txt'), ('Wszsytkie pliki', '*.*')]
         )
         if file_path:
-            self.handle_generate_support_files(file_path)
-
-    def handle_generate_support_files(self, file_path=f'{current_working_dir}\klienci_all.txt')-> None:
-        """"Handles a file load event."""
-        print(f'StageController: handle_generate_support_files({file_path})')
-        success = self.model.support_files.load_data_from_file(file_path)
-        if success:
+            self.file_path = file_path
             self.frame.supportfile_filedialog_label.config(text=f"Wybrano: {file_path}")
-            data = self.model.support_files.get_data()
 
+    def start_generating_support_files(self) -> None:
+        self.frame.supportfile_btn.grid_forget()
+        self.frame.supportfile_filedialog_btn.grid_forget()
+        self.frame.progress_bar.grid(row=2, column=0, columnspan=2, padx=10, pady=10)
+        threat = Thread(target=self.handle_generate_support_files)
+        threat.start()
+        progress_threat = Thread(target=self.update_progress)
+        progress_threat.start()
+
+    def update_progress(self):
+        while True:
+            self.frame.progress_bar['value'] = self.model.support_files.progress_value
+            self.frame.update_idletasks()
+            time.sleep(0.1)
+
+    def handle_generate_support_files(self) -> None:
+        """"Handles a file load event."""
+        print(f'StageController: handle_generate_support_files({self.file_path})')
+        success = self.model.support_files.load_data_from_file(self.file_path)
+        if success:
+            data = self.model.support_files.get_data() # tak można zaciągnać dane.
+            self.frame.supportfile_filedialog_label.config(text=f"Poprawnie zakończono tworzenie plików pomocniczych.")
         else:
+            self.frame.supportfile_btn.grid(row=2, column=0, padx=10, pady=10)
+            self.frame.supportfile_filedialog_btn.grid(row=2, column=1, padx=10, pady=10)
+            self.frame.progress_bar.grid_forget()
             self.frame.supportfile_filedialog_label.config(text=f"Nie znaleziono pliku potrzebnego do wygenerowania "
                                                                 f"plików pomocniczych. ")
 
