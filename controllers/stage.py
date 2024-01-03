@@ -50,7 +50,7 @@ class StageController:
     def start_generating_support_files(self) -> None:
         self.frame.supportfile_btn.grid_forget()
         self.frame.supportfile_filedialog_btn.grid_forget()
-        self.frame.progress_bar.grid(row=2, column=0, columnspan=2, padx=10, pady=10)
+        self.frame.progress_bar.place(x=275, y=75)
         threat = Thread(target=self.handle_generate_support_files)
         threat.start()
         progress_threat = Thread(target=self.update_progress)
@@ -70,9 +70,9 @@ class StageController:
             data = self.model.support_files.get_data() # tak można zaciągnać dane.
             self.frame.supportfile_filedialog_label.config(text=f"Poprawnie zakończono tworzenie plików pomocniczych.")
         else:
-            self.frame.supportfile_btn.grid(row=2, column=0, padx=10, pady=10)
-            self.frame.supportfile_filedialog_btn.grid(row=2, column=1, padx=10, pady=10)
+            self.frame.supportfile_btn.place(x=60, y=105, width=165, height=40)
+            self.frame.supportfile_filedialog_btn.place(x=230, y=105, width=40, height=40)
             self.frame.progress_bar.grid_forget()
             self.frame.supportfile_filedialog_label.config(text=f"Nie znaleziono pliku potrzebnego do wygenerowania "
-                                                                f"plików pomocniczych. ")
+                                                                f"plików pomocniczych. ",wraplength=380, justify="left", anchor='w')
 
