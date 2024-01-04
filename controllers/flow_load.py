@@ -1,5 +1,5 @@
 from models.main import Model
-from models.auth import Report
+from models.report_model import Report
 from views.main import View
 from tkinter import filedialog
 

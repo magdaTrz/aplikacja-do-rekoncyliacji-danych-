@@ -1,6 +1,5 @@
 from models.main import Model
-from models.auth import Auth
-from models.auth import ReportModel
+from models.report_model import ReportModel
 from views.main import View
 
 from .stage import StageController

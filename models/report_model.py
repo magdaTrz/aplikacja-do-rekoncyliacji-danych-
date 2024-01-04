@@ -7,19 +7,6 @@ class Report(TypedDict):
     flow_str: str
 
 
-class Auth(ObservableModel):
-    def __init__(self):
-        super().__init__()
-        self.is_stage_in = False
-        self.current_report: Union[Report, None] = None
-
-    def stage_save(self, report: Report) -> None:
-        print(f'Auth: stage_save({report=})')
-        self.is_stage_in = True
-        self.current_report = report
-        self.trigger_event("auth_changed")
-
-
 def delete_unmigrated_records(dataframe):
     unmigrated_dataframe = pandas.read_csv('support_file_unmigrated_id.csv')
     return dataframe[~dataframe['numer'].isin(unmigrated_dataframe['numer'])]
