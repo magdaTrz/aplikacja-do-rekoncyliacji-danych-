@@ -1,5 +1,6 @@
 import time
 
+import paths
 from models.main import Model
 from paths import path_support_files
 from views.main import View

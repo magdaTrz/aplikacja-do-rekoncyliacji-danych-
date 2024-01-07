@@ -2,6 +2,8 @@ from typing import TypedDict, Union
 
 from models.base import ObservableModel
 import pandas
+import paths
+
 
 class Report(TypedDict):
     stage_str: str
