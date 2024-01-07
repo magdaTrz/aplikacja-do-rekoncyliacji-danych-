@@ -23,10 +23,7 @@ class Root(Tk):
 
         style = ttk.Style()
 
-        font_name = "Bahnschrift SemiBold"
+        font_name = "Bahnschrift"
         font_size = 12
         style.configure("TButton", font=(font_name, font_size))
-        style.map("TButton",
-                  foreground=[('hover', 'red')],
-                  background=[('hover', 'red')]
-                  )
+        style.map("TButton",foreground=[('hover', 'red')],)

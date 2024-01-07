@@ -18,7 +18,6 @@ class StartView(Frame):
         self.background_label = tk.Label(self, image=self.background_image)
         self.background_label.place(relwidth=1, relheight=1)
 
-        start_font = font.Font(family='Bahnschrift SemiBold', size=16)
         self.start_btn = ttk.Button(self, text="Start")
         self.start_btn.place(x=80, y=100, width=150, height=40)
 

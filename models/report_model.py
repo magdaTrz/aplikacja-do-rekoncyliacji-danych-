@@ -15,9 +15,7 @@ class ReportModel(ObservableModel):
         super().__init__()
         self.flow_is_changed = False
         self.current_report: Union[Report, None] = None
-        self.path_1 = None
-        self.path_2 = None
-        print(self.current_report)
+        self.directory_path = f'{paths.current_working_dir}\dane'
 
     def report_save(self, report: Report) -> None:
         print(f'ReportModel: report_save({report=})')
