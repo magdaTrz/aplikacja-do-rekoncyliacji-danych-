@@ -1,5 +1,5 @@
 from models.main import Model
-from models.report_model import ReportModel
+from models.report_model import ReportModel, BaseDataFrameModel
 from views.main import View
 
 from .stage import StageController
@@ -19,8 +19,13 @@ class Controller:
         self.flow_load_controller = FlowLoadController(model, view)
         self.flow_end_controller = FlowEndController(model, view)
 
-        # self.model.auth.add_event_listener("auth_changed", self.auth_state_listener)
         self.model.report_model.add_event_listener("flow_changed", self.flow_state_listener)
+        self.model.base_data_frame_model.add_event_listener('current_number_report_changed', self.current_number_report_state_listener)
+
+    def current_number_report_state_listener(self, data: BaseDataFrameModel) -> None:
+        print(f'Controller: current_number_report_state_listener({data.current_number_report})')
+        if data.current_number_report_is_changed:
+            self.flow_load_controller.update_progress()
 
     def flow_state_listener(self, data: ReportModel) -> None:
         print(f'Controller: flow_state_listener({data.current_report=})')
@@ -30,18 +35,8 @@ class Controller:
         elif data.flow_is_changed and data.current_report.get("stage_str", None) == 'end':
             self.flow_end_controller.update_view()
 
-    # def auth_state_listener(self, data: Auth) -> None:
-    #     print(f'Controller: auth_state_listener({data})')
-    #     self.stage_controller.update_view()
-    #     if data.is_stage_in:
-    #         self.stage_controller.update_view()
-    #         self.view.switch('flow_load')
-    #     else:
-    #         self.view.switch("start")
-
     def start(self) -> None:
-        # Here, you can do operations required before launching the gui, for example,
-        # self.model.auth.load_auth_state()
+
         print(f'Controller: start()')
         self.view.switch("start")
         self.view.start_mainloop()
