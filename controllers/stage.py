@@ -19,11 +19,26 @@ class StageController:
         """Binds controller functions with respective buttons in the view"""
         self.frame.supportfile_btn.config(command=self.start_generating_support_files)
         self.frame.supportfile_filedialog_btn.config(command=self.choose_file)
+        self.frame.supportfile_filedialog_label.bind('<Button-1>', self.check_directory())
 
         self.frame.reportload_btn.config(command=lambda: self.handle_selected_stage(stage='load'))
         self.frame.reportend_btn.config(command=lambda: self.handle_selected_stage(stage='end'))
 
         self.frame.back_btn.config(command=self.handle_back)
+
+    def check_directory(self):
+        if os.path.exists(paths.path_support_files):
+            if os.path.getsize(paths.path_support_files) > 0:
+                self.frame.supportfile_filedialog_label.config(text=f"Pliki do stworzenia plików pomocniczych są gotowe do generowania.", wraplength=380,
+                    justify="left", anchor='w')
+            else:
+                self.frame.supportfile_filedialog_label.config(
+                    text=f"Pliki do stworzenia plików pomocniczych są puste.", wraplength=380,
+                    justify="left", anchor='w')
+        else:
+            self.frame.supportfile_filedialog_label.config(
+                text=f"Wskaż plik do stworzenia plików pomocniczych.", wraplength=380,
+                justify="left", anchor='w')
 
     def handle_back(self) -> None:
         self.model.report_model.report_clear()
@@ -74,5 +89,5 @@ class StageController:
             self.frame.supportfile_filedialog_btn.place(x=230, y=105, width=40, height=40)
             self.frame.progress_bar.grid_forget()
             self.frame.supportfile_filedialog_label.config(text=f"Nie znaleziono pliku potrzebnego do wygenerowania "
-                                                                f"plików pomocniczych. ",wraplength=380, justify="left", anchor='w')
-
+                                                                f"plików pomocniczych. ", wraplength=380,
+                                                           justify="left", anchor='w')
