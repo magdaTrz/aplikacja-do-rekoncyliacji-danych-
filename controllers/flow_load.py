@@ -106,10 +106,10 @@ class FlowLoadController:
         self.frame.progress_bar_info.config(text=f'{self.model.base_data_frame_model.current_number_report}/'
                                                  f'{self.model.base_data_frame_model.number_of_reports}')
         self.frame.progress_bar_info.place(x=32, y=350, width=25, height=22)
-        threat = Thread(target=self.model.base_data_frame_model.perform_operations(directory_path, stage, flow))
-        threat.start()
-        progress_threat = Thread(target=self.update_progress)
-        progress_threat.start()
+        thread = Thread(target=self.model.base_data_frame_model.perform_operations(directory_path, stage, flow))
+        thread.start()
+        progress_thread = Thread(target=self.update_progress)
+        progress_thread.start()
 
     def check_folder_for_files(self, paths_: str) -> list[str] | None:
         print(f'FlowLoadController: check_folder_for_files()')
