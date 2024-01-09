@@ -1,6 +1,6 @@
 import time
 
-from base import ObservableModel
+from .base import ObservableModel
 import pandas
 
 

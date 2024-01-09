@@ -14,8 +14,8 @@ class FlowEndController:
     def _bind(self) -> None:
         """Binds controller functions with respective buttons in the view"""
         self.frame.back_btn.config(command=self.handle_back)
-        self.frame.koi_btn.config(command=lambda: self.handle_selected_flow(flow='koi'))
-        self.frame.umo_btn.config(command=lambda: self.handle_selected_flow(flow='umo'))
+        # self.frame.koi_btn.config(command=lambda: self.handle_selected_flow(flow='koi'))
+        # self.frame.umo_btn.config(command=lambda: self.handle_selected_flow(flow='umo'))
 
 
     def handle_back(self) -> None:

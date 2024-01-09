@@ -2,25 +2,25 @@ from models.main import Model
 from models.report_model import ReportModel, BaseDataFrameModel
 from views.main import View
 
+from .start import StartController
 from .stage import StageController
 from .flow_load import FlowLoadController
 from .flow_end import FlowEndController
-from .signin import SignInController
-from .signup import SignUpController
+from .report import ReportController
 
 
 class Controller:
     def __init__(self, model: Model, view: View) -> None:
         self.view = view
         self.model = model
-        self.signin_controller = SignInController(model, view)
-        self.signup_controller = SignUpController(model, view)
+        self.start_controller = StartController(model, view)
         self.stage_controller = StageController(model, view)
         self.flow_load_controller = FlowLoadController(model, view)
         self.flow_end_controller = FlowEndController(model, view)
 
         self.model.report_model.add_event_listener("flow_changed", self.flow_state_listener)
-        self.model.base_data_frame_model.add_event_listener('current_number_report_changed', self.current_number_report_state_listener)
+        self.model.base_data_frame_model.add_event_listener('current_number_report_changed',
+                                                            self.current_number_report_state_listener)
 
     def current_number_report_state_listener(self, data: BaseDataFrameModel) -> None:
         print(f'Controller: current_number_report_state_listener({data.current_number_report})')

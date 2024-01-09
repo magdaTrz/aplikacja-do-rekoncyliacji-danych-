@@ -4,9 +4,10 @@ from .root import Root
 # from .home import HomeView
 from .stage import StageView
 from .start import StartView
-from .signup import SignUpView
-from .flow import FlowLoadView
-from .flow import FlowEndView
+
+from .flow_load import FlowLoadView
+from .flow_end import FlowEndView
+from .report import ReportView
 
 
 class Frames(TypedDict):

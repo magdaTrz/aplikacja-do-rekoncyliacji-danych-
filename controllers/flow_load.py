@@ -7,7 +7,7 @@ from typing import List
 from models.main import Model
 from models.report_model import Report
 from views.main import View
-from tkinter import filedialog
+from tkinter import filedialog, ttk
 from threading import Thread
 
 import paths
@@ -36,11 +36,11 @@ class FlowLoadController:
     def set_directory(self, path=None) -> None:
         if path is None:
             self.frame.header_filedialog.config(text=f'Pliki pobierane są z folderu:\n'
-                                                     f'{self.model.report_model.directory_path}')
+                                                     f'{self.model.base_data_frame_model.directory_path}')
         else:
-            self.model.report_model.directory_path = path
+            self.model.base_data_frame_model.directory_path = path
             self.frame.header_filedialog.config(text=f'Pliki pobierane są z folderu:\n'
-                                                     f'{self.model.report_model.directory_path}')
+                                                     f'{self.model.base_data_frame_model.directory_path}')
 
     def handle_back(self) -> None:
         current_report = self.model.report_model.current_report
@@ -81,11 +81,12 @@ class FlowLoadController:
 
             self.frame.start_btn.place(x=140, y=380, width=165, height=40)
 
-    def update_progress(self) -> None:
+    def update_progress(self):
         while True:
+            if self.model.base_data_frame_model.progress_value == -1:
+                print("update_progress(): ERROR ")
             self.frame.progress_bar['value'] = self.model.base_data_frame_model.progress_value
             self.frame.update_idletasks()
-            time.sleep(0.1)
             self.frame.progress_bar_info.config(text=f'{self.model.base_data_frame_model.current_number_report}/'
                                                      f'{self.model.base_data_frame_model.number_of_reports}')
 
@@ -99,21 +100,22 @@ class FlowLoadController:
 
     def handle_generate_report(self) -> None:
         print(f'FlowLoadController: handle_generate_report()')
-        directory_path = self.model.report_model.directory_path
+        self.view.switch('report')
+        directory_path = self.model.base_data_frame_model.directory_path
         flow = self.model.report_model.current_report["flow_str"]
         stage = self.model.report_model.current_report["stage_str"]
         self.frame.progress_bar.place(x=60, y=350)
         self.frame.progress_bar_info.config(text=f'{self.model.base_data_frame_model.current_number_report}/'
                                                  f'{self.model.base_data_frame_model.number_of_reports}')
         self.frame.progress_bar_info.place(x=32, y=350, width=25, height=22)
-        thread = Thread(target=self.model.base_data_frame_model.perform_operations(directory_path, stage, flow))
+        thread = Thread(target=self.model.base_data_frame_model.perform_operations, args=(directory_path, stage, flow))
         thread.start()
         progress_thread = Thread(target=self.update_progress)
         progress_thread.start()
 
     def check_folder_for_files(self, paths_: str) -> list[str] | None:
         print(f'FlowLoadController: check_folder_for_files()')
-        directory_path = self.model.report_model.directory_path
+        directory_path = self.model.base_data_frame_model.directory_path
         missing_files = []
 
         for path_info in paths_:

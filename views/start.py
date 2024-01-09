@@ -4,8 +4,6 @@ from PIL import Image, ImageTk
 
 import paths
 
-# import customtkinter
-
 
 class StartView(Frame):
     def __init__(self, *args, **kwargs):
