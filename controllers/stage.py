@@ -68,10 +68,10 @@ class StageController:
         self.frame.supportfile_btn.grid_forget()
         self.frame.supportfile_filedialog_btn.grid_forget()
         self.frame.progress_bar.place(x=275, y=75)
-        threat = Thread(target=self.handle_generate_support_files)
-        threat.start()
-        progress_threat = Thread(target=self.update_progress)
-        progress_threat.start()
+        thread = Thread(target=self.handle_generate_support_files)
+        thread.start()
+        progress_thread = Thread(target=self.update_progress)
+        progress_thread.start()
 
     def update_progress(self):
         while True:

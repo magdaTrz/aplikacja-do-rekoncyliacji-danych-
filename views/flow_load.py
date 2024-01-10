@@ -50,9 +50,6 @@ class FlowLoadView(Frame):
             setattr(self, data["name"], button)
             button.place(x=60, y=data["y"], width=165, height=30)
 
-        self.progress_bar = ttk.Progressbar(self, orient="horizontal", length=312, mode="determinate")
-        self.progress_bar_info = Label(self, text='')
-
         self.start_btn = ttk.Button(self, text="Rekoncyliuj")
 
 
