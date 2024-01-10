@@ -16,7 +16,7 @@ class Controller:
         self.start_controller = StartController(model, view)
         self.stage_controller = StageController(model, view)
         self.flow_load_controller = FlowLoadController(model, view)
-        self.flow_end_controller = FlowEndController(model, view)
+        self.report_controller = ReportController(model, view)
 
         self.model.report_model.add_event_listener("flow_changed", self.flow_state_listener)
         self.model.base_data_frame_model.add_event_listener('current_number_report_changed',

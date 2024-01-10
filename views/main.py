@@ -14,7 +14,7 @@ class Frames(TypedDict):
     stage: StageView
     flow_load: FlowLoadView
     flow_end: FlowEndView
-    signup: SignUpView
+    report: ReportView
 
 
 class View:
@@ -26,7 +26,7 @@ class View:
         self._add_frame(StageView, 'stage')
         self._add_frame(FlowLoadView, 'flow_load')
         self._add_frame(FlowEndView, 'flow_end')
-        self._add_frame(SignUpView, "signup")
+        self._add_frame(ReportView, 'report')
 
     def _add_frame(self, Frame, name: str) -> None:
         self.frames[name] = Frame(self.root)
