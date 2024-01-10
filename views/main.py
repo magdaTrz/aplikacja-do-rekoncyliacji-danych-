@@ -1,7 +1,6 @@
 from typing import TypedDict
 
 from .root import Root
-# from .home import HomeView
 from .stage import StageView
 from .start import StartView
 

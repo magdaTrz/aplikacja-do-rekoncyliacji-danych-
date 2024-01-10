@@ -2,12 +2,12 @@ import os
 
 current_working_dir = os.getcwd()
 
-path_background = fr'{current_working_dir}\red4.png'
-path_acn = fr'{current_working_dir}\acn_logo.png'
-path_sbm = fr'{current_working_dir}\sbm_logo.png'
-path_add_file_icon = fr'{current_working_dir}\add_file_icon.png'
-path_folder_icon = fr'{current_working_dir}\folder_icon.png'
-path_support_files = fr'{current_working_dir}\klienci_all.txt'
+path_background = fr'{current_working_dir}\img\red4.png'
+path_acn = fr'{current_working_dir}\img\acn_logo.png'
+path_sbm = fr'{current_working_dir}\img\sbm_logo.png'
+path_add_file_icon = fr'{current_working_dir}\img\add_file_icon.png'
+path_folder_icon = fr'{current_working_dir}\img\folder_icon.png'
+path_support_files = fr'{current_working_dir}\dane\klienci_all.txt'
 
 koi_paths = [
     {'name': 'osoby_instytucje', 'src': 'rfs_klienci_dodatkowe_src.txt', 'ext': 'rfs_out_osoby_instytucje_ext.csv',
