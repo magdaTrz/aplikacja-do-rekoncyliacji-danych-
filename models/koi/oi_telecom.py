@@ -1,7 +1,6 @@
-import os.path
-
 import pandas
 
+from controllers.progress_bar import ProgresBarStatus
 from models.report_model import BaseDataFrameModel
 
 
@@ -14,27 +13,25 @@ class OiTelecom(BaseDataFrameModel):
         self.path_ext = path_ext
         self.path_tgt = path_tgt
         self.path_excel = None
-        self._carry_operations()
 
     def _carry_operations(self):
         print(f'OiTelecom: _carry_operations(stage={self.stage})')
-        dir_path = self.get_dir_path()
 
         if self.stage == 'load':
-            src_dataframe = self.make_dataframe_from_file(os.path.join(dir_path, self.path_src))
+            src_dataframe = self.make_dataframe_from_file(self.path_src)
             src_dataframe = self.set_colum_names({0: 'numer', 11: 'tel_kom', 12: 'e_mail'},
                                                  src_dataframe)
-            ext_dataframe = self.make_dataframe_from_file(os.path.join(dir_path, self.path_ext))
+
+            ext_dataframe = self.make_dataframe_from_file(self.path_ext)
             ext_dataframe = self.set_colum_names({0: 'oi_id', 1: 'symbol', 2: 'numer'},
                                                  ext_dataframe)
             src_dataframe = self.convert_src(src_dataframe)
-
-
+            ProgresBarStatus.increase()
         if self.stage == 'end':
-            ext_dataframe = self.make_dataframe_from_file(os.path.join(dir_path, self.path_ext))
+            ext_dataframe = self.make_dataframe_from_file(self.path_ext)
             ext_dataframe = self.set_colum_names({0: 'oi_id', 1: 'symbol', 2: 'numer'},
                                                  ext_dataframe)
-            tgt_dataframe = self.make_dataframe_from_file(os.path.join(dir_path, self.path_tgt))
+            tgt_dataframe = self.make_dataframe_from_file(self.path_tgt)
             tgt_dataframe = self.set_colum_names({0: 'oi_id', 1: 'symbol', 2: 'numer'},
                                                  tgt_dataframe)
 

@@ -15,26 +15,18 @@ class ReportModel(ObservableModel):
         super().__init__()
         self.flow_is_changed = False
         self.current_report: Union[Report, None] = None
-        self.directory_path = f'{paths.current_working_dir}\dane'
+        self.is_btn_clicked = False
+
+    def call_the_report_generation_function(self):
+        self.is_btn_clicked = True
+        self.trigger_event("view_to_report_changed")
 
     def report_save(self, report: Report) -> None:
-        print(f'ReportModel: report_save({report=})')
-        print(self.current_report)
         self.flow_is_changed = True
         self.current_report = report
         self.trigger_event("flow_changed")
 
-    def path_save(self, path_type, path):
-        if path_type == 'path_1':
-            self.path_1 = path
-        else:
-            self.path_2 = path
-        print(f"{self.path_1=} {self.path_2=}")
-        self.trigger_event("flow_changed")
-
     def report_clear(self) -> None:
-        print(f'ReportModel: report_clear({self.flow_is_changed=})')
-        print(f'ReportModel: report_clear({self.current_report=})')
         self.flow_is_changed = False
         self.current_report = None
         self.trigger_event("flow_changed")
@@ -43,68 +35,48 @@ class ReportModel(ObservableModel):
 class BaseDataFrameModel(ObservableModel):
     def __init__(self):
         super().__init__()
+        self.progress_value_is_changed = False
         self.current_number_report = 1
         self.current_number_report_is_changed = False
         self.number_of_reports = 1
-        self.dir_path = None
+        self.directory_path = f'{paths.current_working_dir}\dane'
         self.path_src = None
         self.path_ext = None
         self.path_tgt = None
-        self.progress_value = 0
 
-    def get_dir_path(self) -> str:
-        return self.dir_path
+    @property
+    def dir_path(self) -> str:
+        return self.directory_path
 
-    def increase_progress_value(self):
-        self.progress_value += 5
-        self.trigger_event("current_number_report_changed")
-        return self.progress_value
+    @dir_path.setter
+    def dir_path(self, path):
+        self.directory_path = path
 
-    def perform_operations(self, dir_path: str, stage: str, flow: str):
-        print(f'BaseDataFrameModel: perform_operations({dir_path}, {flow})')
-        self.dir_path = dir_path
-        for path_info in eval(f'paths.{flow}_paths'):
-            print(f' {path_info}')
-            if stage == 'load':
-                print('  load')
-                if flow == 'koi':
-                    from models.koi.oi_telecom import OiTelecom
+    def update_current_number_report(self, number: int):
+        self.current_number_report_is_changed = True
+        self.current_number_report = number
+        self.trigger_event('current_number_report_changed')
 
-                    self.number_of_reports = 7
-                    self.progress_value = 4
-                    if path_info['name'] == 'osoby_instytucje':
-                        pass
-                    if path_info['name'] == 'oi_password':
-                        pass
-                    if path_info['name'] == 'oi_numb':
-                        pass
-                    if path_info['name'] == 'oi_adresy':
-                        pass
-                    if path_info['name'] == 'oi_atryb':
-                        pass
-                    if path_info['name'] == 'oi_telecom':
-                        OiTelecom(path_src=path_info['src'], path_ext=path_info['ext'])
-                    # self.current_number_report_is_changed = True
-                    # self.make_dataframe_from_file()
-                    #
-                elif flow == 'umo':
-                    self.number_of_reports = 5
+    def make_dataframe_from_file(self, path_to_file: str) -> DataFrame | ReconciliationFileNotFoundError | Any:
+        dir_str_path = os.path.join(self.dir_path, path_to_file)
+        if os.path.exists(dir_str_path):
+            try:
+                dataframe = pandas.read_csv(dir_str_path, sep='|', header=None, low_memory=False)
+                ProgresBarStatus.increase()
+                return dataframe
+            except ParserError:
+                # TODO: Obsłużyć taki wyjątek.
+                return
+        else:
+            return ReconciliationFileNotFoundError()
 
-            if stage == 'end':
-                if flow == 'koi':
-                    self.number_of_reports = 7
-
-    def make_dataframe_from_file(self, path_to_file: str) -> pandas.DataFrame:
-        dataframe = pandas.read_csv(path_to_file, sep='|', header=None, low_memory=False)
-        self.increase_progress_value()
-        return dataframe
-
-    def set_colum_names(self, col_names: dict[int, str], dataframe: pandas.DataFrame):
+    def set_colum_names(self, col_names: dict[int, str], dataframe: pandas.DataFrame) -> pandas.DataFrame:
         print('BaseDataFrameModel: set_colum_names()')
-        self.increase_progress_value()
         try:
+            ProgresBarStatus.increase()
             if dataframe is not None:
                 dataframe = dataframe.rename(columns=col_names)
+                ProgresBarStatus.increase()
                 return dataframe
             else:
                 print('BaseDataFrameModel: set_colum_names(): ERROR: Dataframe is None')
