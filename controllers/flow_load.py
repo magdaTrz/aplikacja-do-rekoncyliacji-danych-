@@ -1,16 +1,9 @@
 import os.path
-import time
-
 import tkinter as tk
-from typing import List
 
 from models.main import Model
-from models.report_model import Report
 from views.main import View
 from tkinter import filedialog, ttk
-from threading import Thread
-
-import paths
 
 
 class FlowLoadController:
@@ -34,7 +27,6 @@ class FlowLoadController:
         self.frame.start_btn.config(command=self.switch_to_report)
 
     def set_directory(self, path=None) -> None:
-        print(f'FlowLoadController: set_directory(){path=}')
         if path is None:
             self.frame.header_filedialog.config(text=f'Pliki pobierane są z folderu:\n'
                                                      f'{self.model.base_data_frame_model.directory_path}')

@@ -29,7 +29,6 @@ class ObservableModel:
         Returns:
             function: Function to remove the listener function.
         """
-        print(f'ObservableModel: add_event_listener()')
         try:
             self._event_listeners[event].append(fn)
         except KeyError:
@@ -38,7 +37,6 @@ class ObservableModel:
         return lambda: self._event_listeners[event].remove(fn)
 
     def trigger_event(self, event: str) -> None:
-        print(f'ObservableModel: trigger_event({event})')
         if event not in self._event_listeners.keys():
             return
 
