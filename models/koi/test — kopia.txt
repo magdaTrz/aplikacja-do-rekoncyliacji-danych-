@@ -1,0 +1,23 @@
+import pandas as pd
+import openpyxl as px
+
+# Przykładowy DataFrame z kolumną float64
+df = pd.DataFrame({'KolumnaWalutowa': [1000.25, 2000.5, 3000.75]})
+
+# Tworzenie pliku Excel (.xlsx)
+excel_file = 'plik_excel_z_waluta.xlsx'
+df.to_excel(excel_file, index=False)
+
+# Otwarcie pliku Excel za pomocą openpyxl
+wb = px.load_workbook(excel_file)
+
+# Wybór arkusza i kolumny
+arkusz = wb.active
+kolumna_walutowa = arkusz['A']
+
+# Ustawienie ogólnego formatu walutowego (bez symbolu waluty)
+for komorka in kolumna_walutowa[1:]:  # Pomijamy nagłówek
+    komorka.number_format = '#,##0.00'
+
+# Zapisanie zmian
+wb.save(excel_file)
