@@ -8,6 +8,9 @@ path_sbm = fr'{current_working_dir}\img\sbm_logo.png'
 path_add_file_icon = fr'{current_working_dir}\img\add_file_icon.png'
 path_folder_icon = fr'{current_working_dir}\img\folder_icon.png'
 path_support_files = fr'{current_working_dir}\dane\klienci_all.txt'
+path_support_files_folder = fr'{current_working_dir}\dane'
+path_dict_folder = fr'{current_working_dir}\słowniki'
+path_loading = fr"{current_working_dir}\img\Dual Ring-2.4s-30px.gif"
 
 koi_paths = [
     {'name': 'osoby_instytucje', 'src': 'rfs_klienci_dodatkowe_src.txt', 'ext': 'rfs_out_osoby_instytucje_ext.csv',

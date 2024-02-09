@@ -3,7 +3,7 @@ import time
 
 import paths
 from models.main import Model
-from paths import path_support_files
+from paths import path_support_files_folder, path_dict_folder
 from views.main import View
 from tkinter import filedialog
 from threading import Thread
@@ -11,38 +11,53 @@ from threading import Thread
 
 class StageController:
     def __init__(self, model: Model, view: View) -> None:
-        self.file_path = path_support_files
+        self.folder_path_support_files = path_support_files_folder
+        self.folder_path_dicts = path_dict_folder
         self.model = model
         self.view = view
         self.frame = self.view.frames["stage"]
         self._bind()
 
     def _bind(self) -> None:
-        """Binds controller functions with respective buttons in the view"""
-        self.frame.supportfile_btn.config(command=self.start_generating_support_files)
-        self.frame.supportfile_filedialog_btn.config(command=self.choose_file)
+        """Binds controller functions with respective buttons in the view."""
+        # binds for support files
+        self.frame.supportfile_btn.config(command=lambda: self.start_process(folder='support_files'))
+        self.frame.supportfile_filedialog_btn.config(command=lambda: self.choose_folder(folder='support_files'))
         self.frame.supportfile_filedialog_label.bind('<Button-1>', self.check_directory())
 
+        # binds for dicts
+        self.frame.dict_btn.config(command=lambda: self.start_process(folder='dict'))
+        self.frame.dict_filedialog_btn.config(command=lambda: self.choose_folder(folder='dict'))
+
+        # binds for choosing stage
         self.frame.reportload_btn.config(command=lambda: self.handle_selected_stage(stage='load'))
         self.frame.reportend_btn.config(command=lambda: self.handle_selected_stage(stage='end'))
 
         self.frame.back_btn.config(command=self.handle_back)
 
-    def check_directory(self):
+    def check_directory(self) -> bool:
+        """Updated support file status label"""
+        #  check if path to file exist
         if os.path.exists(paths.path_support_files):
+            # check if file is not empty
             if os.path.getsize(paths.path_support_files) > 0:
-                self.frame.supportfile_filedialog_label.config(text=f"Pliki do stworzenia plików pomocniczych są gotowe do generowania.", wraplength=380,
+                self.frame.supportfile_filedialog_label.config(
+                    text=f"Pliki do stworzenia plików pomocniczych są gotowe do generowania.", wraplength=380,
                     justify="left", anchor='w')
+                return True
             else:
                 self.frame.supportfile_filedialog_label.config(
                     text=f"Pliki do stworzenia plików pomocniczych są puste.", wraplength=380,
                     justify="left", anchor='w')
+                return False
         else:
             self.frame.supportfile_filedialog_label.config(
                 text=f"Wskaż plik do stworzenia plików pomocniczych.", wraplength=380,
                 justify="left", anchor='w')
+            return False
 
     def handle_back(self) -> None:
+        """Return to previous screen function"""
         self.model.report_model.report_clear()
         self.view.switch('start')
 
@@ -53,23 +68,26 @@ class StageController:
         elif stage == 'end':
             self.view.switch('flow_end')
 
-    def choose_file(self) -> None:
-        """File selection dialog"""
-        print(f'StageController: choose_file()')
-        file_path = filedialog.askopenfilename(
-            title='Wybierz plik',
-            filetypes=[('Pliki tekstowe', '*.txt'), ('Wszsytkie pliki', '*.*')]
-        )
-        if file_path:
-            self.file_path = file_path
-            self.frame.supportfile_filedialog_label.config(text=f"Wybrano: {file_path}")
+    def choose_folder(self, folder: str) -> None:
+        """Folder selection dialog."""
+        folder_path = filedialog.askdirectory()
+        if folder_path:
+            if folder == 'dict':
+                self.folder_path_dicts = folder_path
+                self.model.dict_update.set_path(folder_path)
+            elif folder == 'support_files':
+                self.folder_path_support_files = folder_path
+                self.model.support_files.set_path(folder_path)
+            self.frame.supportfile_filedialog_label.config(text=f"Wybrano folder : {folder_path}")
 
-    def start_generating_support_files(self) -> None:
-        self.frame.supportfile_btn.grid_forget()
-        self.frame.supportfile_filedialog_btn.grid_forget()
+    def start_process(self, folder: str) -> None:
         self.frame.progress_bar.place(x=275, y=75)
-        thread = Thread(target=self.handle_generate_support_files)
-        thread.start()
+        if folder == 'support_files':
+            thread = Thread(target=self.handle_generate_support_files)
+            thread.start()
+        elif folder == 'dict':
+            thread = Thread(target=self.handle_dict_updates)
+            thread.start()
         progress_thread = Thread(target=self.update_progress)
         progress_thread.start()
 
@@ -81,15 +99,21 @@ class StageController:
 
     def handle_generate_support_files(self) -> None:
         """"Handles a file load event."""
-        print(f'StageController: handle_generate_support_files({self.file_path})')
-        success = self.model.support_files.load_data_from_file(self.file_path)
-        if success:
-            data = self.model.support_files.get_data() # tak można zaciągnać dane.
+        success_file0 = self.model.support_files.check_for_files(file_name='rfs_klienci_all_src.txt')
+        success_file1 = self.model.support_files.check_for_files(file_name='rfs_out_osoby_instytucje_ext.csv')
+        success_file2 = self.model.support_files.check_for_files(file_name='rfs_out_oi_numb_ext.csv')
+        if success_file2 and success_file1 and success_file0:
+            self.model.support_files.create_support_file_koi()
+            self.model.support_files.create_support_file_is_migrated()
             self.frame.supportfile_filedialog_label.config(text=f"Poprawnie zakończono tworzenie plików pomocniczych.")
         else:
-            self.frame.supportfile_btn.place(x=60, y=105, width=165, height=40)
-            self.frame.supportfile_filedialog_btn.place(x=230, y=105, width=40, height=40)
-            self.frame.progress_bar.grid_forget()
             self.frame.supportfile_filedialog_label.config(text=f"Nie znaleziono pliku potrzebnego do wygenerowania "
                                                                 f"plików pomocniczych. ", wraplength=380,
                                                            justify="left", anchor='w')
+
+    def handle_dict_updates(self) -> None:
+        self.model.dict_update.update_KSFIN_dict()
+        self.model.dict_update.update_KSGPW_dict()
+        self.model.dict_update.update_TRANS_dict()
+        self.frame.supportfile_filedialog_label.config(text=f"Poprawnie zakończono aktualizację słowników.")
+        return
