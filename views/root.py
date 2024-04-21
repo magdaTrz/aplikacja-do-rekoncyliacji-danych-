@@ -24,7 +24,11 @@ class Root(Tk):
         style = ttk.Style()
 
         font_name = "Bahnschrift"
-        font_size = 12
+        font_size = 10
         style.configure("TButton", font=(font_name, font_size))
         style.map("TButton",
                   foreground=[('active', 'red'), ('!active', 'black')])
+
+        style.configure("NoBackground.TLabel", background="systemTransparent")
+
+

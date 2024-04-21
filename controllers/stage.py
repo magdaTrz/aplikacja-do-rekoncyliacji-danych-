@@ -21,17 +21,17 @@ class StageController:
     def _bind(self) -> None:
         """Binds controller functions with respective buttons in the view."""
         # binds for support files
-        self.frame.supportfile_btn.config(command=lambda: self.start_process(folder='support_files'))
-        self.frame.supportfile_filedialog_btn.config(command=lambda: self.choose_folder(folder='support_files'))
-        self.frame.supportfile_filedialog_label.bind('<Button-1>', self.check_directory())
+        self.frame.generate_support_files_btn.config(command=lambda: self.start_process(folder='support_files'))
+        self.frame.support_file_filedialog_btn.config(command=lambda: self.choose_folder(folder='support_files'))
+        # self.frame.supportfile_filedialog_label.bind('<Button-1>', self.check_directory())
 
         # binds for dicts
-        self.frame.dict_btn.config(command=lambda: self.start_process(folder='dict'))
-        self.frame.dict_filedialog_btn.config(command=lambda: self.choose_folder(folder='dict'))
+        self.frame.update_dictionaries_btn.config(command=lambda: self.start_process(folder='dict'))
+        self.frame.dictionaries_filedialog_btn.config(command=lambda: self.choose_folder(folder='dict'))
 
         # binds for choosing stage
-        self.frame.reportload_btn.config(command=lambda: self.handle_selected_stage(stage='load'))
-        self.frame.reportend_btn.config(command=lambda: self.handle_selected_stage(stage='end'))
+        self.frame.report_load_btn.config(command=lambda: self.handle_selected_stage(stage='load'))
+        self.frame.report_end_btn.config(command=lambda: self.handle_selected_stage(stage='end'))
 
         self.frame.back_btn.config(command=self.handle_back)
 

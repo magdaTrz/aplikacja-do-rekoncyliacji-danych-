@@ -9,40 +9,91 @@ class StageView(Frame):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.background_image = PhotoImage(file=paths.path_background)
-        resized_image = Image.open(paths.path_background)
-        self.background_image = ImageTk.PhotoImage(resized_image)
+        # image background photo
+        self.background_image = PhotoImage(file=paths.path_background_stage)
+        resized_background_image = Image.open(paths.path_background_stage)
+        self.background_image = ImageTk.PhotoImage(resized_background_image)
 
         self.background_label = tk.Label(self, image=self.background_image)
         self.background_label.place(relwidth=1, relheight=1)
 
-        self.back_btn = Button(self, text="<-Cofnij")
-        self.back_btn.place(x=20, y=20, width=100, height=30)
+        # image background plain color
+        self.background_transparent_image = PhotoImage(file=paths.path_background_stage_settings)
+        resized_background_transparent_image = Image.open(paths.path_background_stage_settings)
+        self.background_transparent_image = ImageTk.PhotoImage(resized_background_transparent_image)
 
-        self.icon = tk.PhotoImage(file=paths.path_folder_icon)
+        self.background_image_label = ttk.Label(self, image=self.background_transparent_image)
 
-        self.supportfile_btn = Button(self, text="Wygeneruj pliki pomocnicze")
-        self.supportfile_btn.place(x=60, y=105, width=165, height=40)
+        # btn back
+        self.back_icon = PhotoImage(file=paths.path_back_icon)
+        resized_back_icon = Image.open(paths.path_back_icon)
+        self.back_icon = ImageTk.PhotoImage(resized_back_icon)
 
-        self.supportfile_filedialog_btn = Button(self, image=self.icon)
-        self.supportfile_filedialog_btn.place(x=230, y=105, width=40, height=40)
+        self.back_btn = ttk.Button(self, image=self.back_icon)
+        self.back_btn.place(x=30, y=15)
 
-        self.supportfile_filedialog_label = Label(self, text="", anchor='nw', padx=10, pady=10)
-        self.supportfile_filedialog_label.place(x=275, y=105, width=385, height=90)
+        # icons
+        self.folder_icon = tk.PhotoImage(file=paths.path_folder_icon)
+        self.add_folder_icon = tk.PhotoImage(file=paths.path_add_folder_icon)
+        self.excel_icon = tk.PhotoImage(file=paths.path_excel_icon)
+        self.gear_icon = tk.PhotoImage(file=paths.path_gear_icon)
 
-        self.dict_btn = Button(self, text="Aktualizuj słowniki")
-        self.dict_btn.place(x=60, y=155, width=165, height=40)
-
-        self.dict_filedialog_btn = Button(self, image=self.icon)
-        self.dict_filedialog_btn.place(x=230, y=155, width=40, height=40)
+        # btn expand
+        self.buttons_expanded = False
+        self.expand_button = ttk.Button(self, text="   Ustawienia", command=self.toggle_buttons, image=self.gear_icon,
+                                        compound="left")
+        self.expand_button.place(x=450, y=60, width=140, height=40)
 
         self.progress_bar = ttk.Progressbar(self, orient="horizontal", length=385, mode="determinate")
 
-        self.header = Label(self, text="Wybierz etap:")
-        self.header.place(x=250, y=255, width=200, height=40)
+        # btn generate support files and filedialog
+        self.generate_support_files_btn = ttk.Button(self, text="Wygeneruj pliki pomocnicze")
+        self.generate_support_files_btn.place(x=60, y=105, width=170, height=40)
 
-        self.reportload_btn = Button(self, text="Raporty Go4Load")
-        self.reportload_btn.place(x=267, y=326, width=165, height=40)
+        self.support_file_filedialog_btn = ttk.Button(self, image=self.folder_icon)
+        self.support_file_filedialog_btn.place(x=235, y=105, width=40, height=40)
 
-        self.reportend_btn = Button(self, text="Raporty Go4EndOfDay")
-        self.reportend_btn.place(x=267, y=372, width=165, height=40)
+        # btn update dictionaries and filedialog
+        self.update_dictionaries_btn = ttk.Button(self, text="Aktualizuj słowniki")
+        self.update_dictionaries_btn.place(x=60, y=155, width=170, height=40)
+
+        self.dictionaries_filedialog_btn = ttk.Button(self, image=self.folder_icon)
+        self.dictionaries_filedialog_btn.place(x=235, y=155, width=40, height=40)
+
+        # btn change save dictionaries filedialog
+        self.save_dictionaries_btn = ttk.Button(self, text="   Zmień miejsce zapisu raportów", image=self.folder_icon,
+                                                compound="left")
+
+        # btn choose folder filedialog
+        self.choose_folder_btn = ttk.Button(self, text="   Wybierz pliki do raportów          ",
+                                            image=self.add_folder_icon,
+                                            compound="left")
+
+        # btn summary report filedialog
+        self.summary_report_btn = ttk.Button(self, text="   Podsumuj raport                            ",
+                                            image=self.excel_icon,
+                                            compound="left")
+
+        self.report_load_btn = ttk.Button(self, text="Raporty Go4Load")
+        self.report_load_btn.place(x=60, y=279, width=165, height=40)
+
+        self.report_end_btn = ttk.Button(self, text="Raporty Go4EndOfDay")
+        self.report_end_btn.place(x=60, y=329, width=165, height=40)
+
+    def toggle_buttons(self):
+        if not self.buttons_expanded:
+            self.background_image_label.place(relwidth=1, relheight=1)
+            self.save_dictionaries_btn.place(x=450, y=105, width=230, height=40)
+            self.choose_folder_btn.place(x=450, y=155, width=230, height=40)
+            self.summary_report_btn.place(x=450, y=205, width=230, height=40)
+
+            self.expand_button.config(text="   Zwiń")
+            self.buttons_expanded = True
+        else:
+            self.save_dictionaries_btn.place_forget()
+            self.choose_folder_btn.place_forget()
+            self.summary_report_btn.place_forget()
+            self.background_image_label.place_forget()
+
+            self.expand_button.config(text="   Ustawienia")
+            self.buttons_expanded = False
