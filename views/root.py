@@ -13,8 +13,8 @@ class Root(Tk):
         start_height = 480
         min_height = start_height - 10
 
-        customtkinter.set_appearance_mode('System')
-        customtkinter.set_default_color_theme('blue')
+        customtkinter.set_appearance_mode('dark')
+        customtkinter.set_default_color_theme('dark-blue')
         self.geometry(f"{start_width}x{start_height}")
         self.minsize(width=min_width, height=min_height)
         self.title("Konsola Rekoncyliacji")
@@ -26,4 +26,5 @@ class Root(Tk):
         font_name = "Bahnschrift"
         font_size = 12
         style.configure("TButton", font=(font_name, font_size))
-        style.map("TButton",foreground=[('hover', 'red')],)
+        style.map("TButton",
+                  foreground=[('active', 'red'), ('!active', 'black')])

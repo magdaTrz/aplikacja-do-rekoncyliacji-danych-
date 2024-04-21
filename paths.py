@@ -2,7 +2,10 @@ import os
 
 current_working_dir = os.getcwd()
 
-path_background = fr'{current_working_dir}\img\red4.png'
+path_background_color = fr'{current_working_dir}\img\background color.png'
+path_help_icon = fr'{current_working_dir}\img\question_icon.png'
+path_background = fr'{current_working_dir}\img\bg_start.png'
+path_start_text = fr'{current_working_dir}\img\text_start.png'
 path_acn = fr'{current_working_dir}\img\acn_logo.png'
 path_sbm = fr'{current_working_dir}\img\sbm_logo.png'
 path_add_file_icon = fr'{current_working_dir}\img\add_file_icon.png'
