@@ -9,8 +9,8 @@ from controllers.progress_bar import ProgresBarStatus
 class ReportView(Frame):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.background_image = PhotoImage(file=paths.path_background)
-        resized_image = Image.open(paths.path_background)
+        self.background_image = PhotoImage(file=paths.path_background_start)
+        resized_image = Image.open(paths.path_background_start)
 
         self.background_image = ImageTk.PhotoImage(resized_image)
         self.background_label = tk.Label(self, image=self.background_image)

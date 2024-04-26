@@ -18,8 +18,8 @@ class StartView(Frame):
         self.background_image_label.place(x=0, y=0, width=345, height=480)
 
         # image right background photo
-        self.background_image = PhotoImage(file=paths.path_background)
-        resized_background_image = Image.open(paths.path_background)
+        self.background_image = PhotoImage(file=paths.path_background_start)
+        resized_background_image = Image.open(paths.path_background_start)
         self.background_image = ImageTk.PhotoImage(resized_background_image)
 
         self.background_image_label = tk.Label(self, image=self.background_image)

@@ -45,10 +45,16 @@ class BaseDataFrameModel(ObservableModel):
         self.current_number_report = 1
         self.current_number_report_is_changed = False
         self.number_of_reports = 1
-        self.directory_path = f'{paths.current_working_dir}\dane'
-        self.path_src = None
-        self.path_ext = None
-        self.path_tgt = None
+        self.data_folder_report_path = ''
+        self.save_report_folder_path = ''
+
+    def set_save_report_folder_path(self, path: str):
+        print(f'set_save_report_folder_path(): {path}')
+        self.save_report_folder_path = path
+
+    def set_data_folder_path(self, path: str):
+        print(f'set_data_folder_path(): {path}')
+        self.save_report_folder_path = path
 
     @property
     def dir_path(self) -> str:
@@ -105,3 +111,4 @@ class BaseDataFrameModel(ObservableModel):
             raise ValueError(f"Kolumna {column_to_take} nie istnieje w DataFrame.")
         dataframe.loc[:, column_to_fill] = dataframe[column_to_take].map(map_dict).fillna(dataframe[column_to_fill])
         return dataframe
+
