@@ -30,31 +30,35 @@ class FlowLoadController:
         self.frame.choose_dir_to_save_filedialog_btn.config(
             command=lambda: self.choose_folder(path_to='save_report_folder_path'))
 
+        self.password = self.frame.set_password_btn.config(command=self.set_password_to_report)
+        self.migration_date = self.frame.set_migration_date_btn.config(command=self.set_migration_date)
         self.frame.start_btn.config(command=self.switch_to_report)
+        self.frame.check_btn.config(command=self.switch_to_report)
+        self.frame.xmark_btn.config(command=self.xmark_do_report)
 
     def set_data_folder_path_controller(self, path=None) -> None:
         if path is None:
-            data_folder_path = os.path.join(os.getcwd(), 'dane')
-            self.model.base_data_frame_model.set_data_folder_path(data_folder_path)
-            self.frame.header_filedialog_label.config(text=f'{data_folder_path}')
+            _path = os.path.join(os.getcwd(), 'dane')
+            self.model.base_data_frame_model.set_data_folder_path(_path)
+            self.frame.header_filedialog_label.config(text=f'{_path}')
         else:
             self.model.base_data_frame_model.set_data_folder_path(path)
             self.frame.header_filedialog_label.config(text=f'{path}')
 
     def set_save_reports_folder_path_controller(self, path=None) -> None:
         if path is None:
-            data_folder_path = os.path.join(os.getcwd(), 'raporty')
-            self.model.base_data_frame_model.set_save_report_folder_path(data_folder_path)
-            self.frame.where_save_reports_label.config(text=f'{data_folder_path}')
+            _path = os.path.join(os.getcwd(), 'raporty')
+            self.model.base_data_frame_model.set_save_report_folder_path(_path)
+            self.frame.where_save_reports_label.config(text=f'{_path}')
         else:
             self.model.base_data_frame_model.set_save_report_folder_path(path)
             self.frame.where_save_reports_label.config(text=f'{path}')
 
     def handle_back(self) -> None:
         current_report = self.model.report_model.current_report
-        print(f"""FlowLoadController: handle_back(){current_report=} \
+        print(f"FlowLoadController: handle_back(){current_report=} \
               {self.model.base_data_frame_model.save_report_folder_path} \
-              {self.model.base_data_frame_model.data_folder_report_path} \ """)
+              {self.model.base_data_frame_model.data_folder_report_path}")
         if current_report:
             current_report['stage_str'] = None
             current_report['flow_str'] = None
@@ -82,10 +86,12 @@ class FlowLoadController:
             missing_files = self.check_folder_for_files(eval(f'paths.{flow}_paths'))
             if missing_files is None:
                 self.add_text_to_info_label('Wszytkie potrzebne pliki znajdują się w folderze.')
+                self.frame.start_btn.place(x=390, y=430, width=165, height=40)
             else:
                 self.add_text_to_info_label(f'Brak następujących plików w folderze: {missing_files}')
-            # TODO: dodać obsługę czy chcesz kontynuować.
-            self.frame.start_btn.place(x=390, y=430, width=165, height=40)
+                self.add_text_to_info_label(f'Czy chcesz kontynuować \nbez tych plików?')
+                self.frame.check_btn.place(x=330, y=430, width=35, height=35)
+                self.frame.xmark_btn.place(x=375, y=430, width=35, height=35)
         else:
             print(f"ERROR: 'FlowLoadController: update_view() {current_report=}'")
 
@@ -105,12 +111,13 @@ class FlowLoadController:
 
     def check_folder_for_files(self, paths_: str) -> list[str] | None:
         print(f'FlowLoadController: check_folder_for_files()')
-        directory_path = self.model.base_data_frame_model.directory_path
+
+        directory_path = self.model.base_data_frame_model.data_folder_report_path
         missing_files = []
 
         for path_info in paths_:
             src_path = os.path.join(directory_path, path_info['src'])
-            ext_path = os.path.join(directory_path, path_info['src'])
+            ext_path = os.path.join(directory_path, path_info['ext'])
 
             if not os.path.isfile(src_path):
                 missing_files.append(path_info['src'])
@@ -122,6 +129,30 @@ class FlowLoadController:
         else:
             return None  # All files for this flow have been found
 
+    def xmark_do_report(self) -> None:
+        self.add_text_to_info_label(f'\nDodaj pliki do folderu '
+                                    f'{self.model.base_data_frame_model.data_folder_report_path}')
+        self.frame.check_btn.place_forget()
+        self.frame.xmark_btn.place_forget()
+
+    def set_password_to_report(self):
+        self.frame.show_set_password_window(self.password_received_callback)
+
+    def password_received_callback(self, password):
+        print(f"password_received_callback(): {password}")
+        self.model.base_data_frame_model.set_password_to_report(password)
+        self.add_text_to_info_label(f'\nNadano hasło: '
+                                    f'{self.model.base_data_frame_model.password_report}')
+
+    def set_migration_date(self):
+        self.frame.show_calendar_window(self.calendar_received_callback)
+
+    def calendar_received_callback(self, date):
+        print(f"calendar_received_callback(): {date}")
+        self.model.base_data_frame_model.set_migration_date(date)
+        self.add_text_to_info_label(f"\nUstawiono datę migracji na: {self.model.base_data_frame_model.migration_date}")
+
     def add_text_to_info_label(self, new_text: str) -> None:
         print(f'FlowLoadController: add_text_to_info_label()')
         self.frame.info_label.insert(tk.END, f'{new_text}\n\n')
+        self.frame.info_label.see(tk.END)

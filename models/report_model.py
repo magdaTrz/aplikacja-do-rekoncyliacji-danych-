@@ -47,6 +47,8 @@ class BaseDataFrameModel(ObservableModel):
         self.number_of_reports = 1
         self.data_folder_report_path = ''
         self.save_report_folder_path = ''
+        self.password_report = ''
+        self.migration_date = ''
 
     def set_save_report_folder_path(self, path: str):
         print(f'set_save_report_folder_path(): {path}')
@@ -54,15 +56,15 @@ class BaseDataFrameModel(ObservableModel):
 
     def set_data_folder_path(self, path: str):
         print(f'set_data_folder_path(): {path}')
-        self.save_report_folder_path = path
+        self.data_folder_report_path = path
 
-    @property
-    def dir_path(self) -> str:
-        return self.directory_path
+    def set_password_to_report(self, password):
+        print(f"set_password_to_report(): {password} ")
+        self.password_report = password
 
-    @dir_path.setter
-    def dir_path(self, path):
-        self.directory_path = path
+    def set_migration_date(self, date):
+        print(f"set_migration_date(): {date}")
+        self.migration_date = date
 
     def update_current_number_report(self, number: int):
         self.current_number_report_is_changed = True

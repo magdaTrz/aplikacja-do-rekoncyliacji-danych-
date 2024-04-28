@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import Frame, Label, Button, PhotoImage, ttk, scrolledtext
 from PIL import Image, ImageTk
+from tkcalendar import Calendar
 
 import paths
 
@@ -58,10 +59,16 @@ class FlowLoadView(Frame):
         # btn set password
         self.set_password_btn = ttk.Button(self, image=self.lock_icon)
         self.set_password_btn.place(x=627, y=140, width=40, height=40)
+        self.password_window_open = False
+        self.window_password = None
+        self.password_received_callback = None
 
         # btn set migration date
         self.set_migration_date_btn = ttk.Button(self, image=self.calendar_icon)
         self.set_migration_date_btn.place(x=627, y=188, width=40, height=40)
+        self.calendar_window_open = False
+        self.window_calendar = None
+        self.calendar_received_callback = None
 
         # ScrolledText
         self.info_label = scrolledtext.ScrolledText(self)
@@ -75,5 +82,111 @@ class FlowLoadView(Frame):
             setattr(self, data["name"], button)
             button.place(x=60, y=data["y"], width=165, height=30)
 
+        # btn reconcile
         self.start_btn = ttk.Button(self, text="  Rekoncyliuj ", image=self.gear_icon,
                                     compound="left")
+
+        # insurance yes/no
+        self.check_icon = tk.PhotoImage(file=paths.path_check_icon)
+        self.xmark_icon = tk.PhotoImage(file=paths.path_xmark_icon)
+
+        self.check_btn = ttk.Button(self, image=self.check_icon)
+        self.xmark_btn = ttk.Button(self, image=self.xmark_icon)
+
+    def show_set_password_window(self, callback):
+        self.password_received_callback = callback
+
+        def set_password():
+            password = password_entry.get()
+            on_close()
+            self.password_received_callback(password)
+
+        def on_close():
+            nonlocal self
+            self.password_window_open = False
+            self.window_password.destroy()
+
+        if not self.password_window_open:
+            self.password_window_open = True
+            self.window_password = tk.Toplevel(self)
+            self.window_password.title("Ustaw hasło na raportach")
+
+            # Ustawienie wielkości okna
+            width = 400
+            height = 250
+            x = (self.winfo_screenwidth() - width) // 2
+            y = (self.winfo_screenheight() - height) // 2
+            self.window_password.geometry('{}x{}+{}+{}'.format(width, height, x, y))
+
+            # Ustawienie okna na środku okna rodzica
+            self.update_idletasks()
+            window_password_x = self.winfo_rootx() + (self.winfo_width() - width) // 2
+            window_password_y = self.winfo_rooty() + (self.winfo_height() - height) // 2
+            self.window_password.geometry('+{}+{}'.format(window_password_x, window_password_y))
+
+            label = ttk.Label(self.window_password, text='Podaj hasło którym chcesz zabezpieczyć raporty')
+            label.place(x=65, y=20, width=270, height=30)
+
+            password_entry = ttk.Entry(self.window_password, show='*')
+            password_entry.place(x=65, y=47, width=270, height=30)
+
+            accept_passwort_btn = ttk.Button(self.window_password, text="Zatwierdż", command=set_password,
+                                             image=self.check_icon, compound="left")
+            accept_passwort_btn.place(x=85, y=100, width=110, height=30)
+
+            cancel_password_btn = ttk.Button(self.window_password, text="Anuluj", command=on_close,
+                                             image=self.xmark_icon, compound="left")
+            cancel_password_btn.place(x=204, y=100, width=110, height=30)
+
+            self.window_password.protocol("WM_DELETE_WINDOW", on_close)
+        else:
+            self.window_password.focus()
+
+    def show_calendar_window(self, callback):
+        self.calendar_received_callback = callback
+
+        def set_date():
+            migration_date = calendar_widget.get_date()
+            self.calendar_received_callback(migration_date)
+            on_close()
+
+        def on_close():
+            nonlocal self
+            self.calendar_window_open = False
+            self.window_calendar.destroy()
+
+        if not self.calendar_window_open:
+            self.calendar_window_open = True
+            self.window_calendar = tk.Toplevel(self)
+            self.window_calendar.title("Ustaw datę migracji")
+
+            # Ustawienie wielkości okna
+            width = 500
+            height = 480
+            x = (self.winfo_screenwidth() - width) // 2
+            y = (self.winfo_screenheight() - height) // 2
+            self.window_calendar.geometry('{}x{}+{}+{}'.format(width, height, x, y))
+
+            # Ustawienie okna na środku okna rodzica
+            self.update_idletasks()
+            window_calendar_x = self.winfo_rootx() + (self.winfo_width() - width) // 2
+            window_calendar_y = self.winfo_rooty() + (self.winfo_height() - height) // 2
+            self.window_calendar.geometry('+{}+{}'.format(window_calendar_x, window_calendar_y))
+
+            label = ttk.Label(self.window_calendar, text='Wybierz datę migracji')
+            label.place(x=100, y=20, width=300, height=30)
+
+            calendar_widget = Calendar(self.window_calendar, selectmode='day')
+            calendar_widget.place(x=100, y=60, width=300, height=300)
+
+            accept_calendar_btn = ttk.Button(self.window_calendar, text="Zatwierdż", command=set_date,
+                                             image=self.check_icon, compound="left")
+            accept_calendar_btn.place(x=135, y=388, width=110, height=30)
+
+            cancel_calendar_btn = ttk.Button(self.window_calendar, text="Anuluj", command=on_close,
+                                             image=self.xmark_icon, compound="left")
+            cancel_calendar_btn.place(x=255, y=388, width=110, height=30)
+
+            self.window_calendar.protocol("WM_DELETE_WINDOW", on_close)
+        else:
+            self.window_calendar.focus()
