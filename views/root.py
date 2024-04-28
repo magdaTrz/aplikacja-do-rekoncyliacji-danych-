@@ -17,6 +17,7 @@ class Root(Tk):
         customtkinter.set_default_color_theme('dark-blue')
         self.geometry(f"{start_width}x{start_height}")
         self.minsize(width=min_width, height=min_height)
+        self.maxsize(width=start_width, height=start_height)
         self.title("Konsola Rekoncyliacji")
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
