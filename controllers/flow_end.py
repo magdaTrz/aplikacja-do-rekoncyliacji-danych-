@@ -2,6 +2,7 @@ from models.main import Model
 from models.report_model import Report
 from views.main import View
 from tkinter import filedialog
+from text_variables import TextEnum
 
 
 class FlowEndController:
@@ -14,12 +15,12 @@ class FlowEndController:
     def _bind(self) -> None:
         """Binds controller functions with respective buttons in the view"""
         self.frame.back_btn.config(command=self.handle_back)
-        # self.frame.koi_btn.config(command=lambda: self.handle_selected_flow(flow='koi'))
-        # self.frame.umo_btn.config(command=lambda: self.handle_selected_flow(flow='umo'))
+        # self.frame.koi_btn.config(command=lambda: self.handle_selected_flow(flow=TextEnum.KOI))
+        # self.frame.umo_btn.config(command=lambda: self.handle_selected_flow(flow=TextEnum.UMO))
 
 
     def handle_back(self) -> None:
-        current_report = self.model.report_model.current_report
+        current_report = self.model.report_stage_flow_model.current_report
         print(f'FlowLoadController: handle_back(){current_report=}')
         if current_report:
             current_report['stage_str'] = None
@@ -29,10 +30,10 @@ class FlowEndController:
     def handle_selected_flow(self, flow: str) -> None:
         print(f'FlowLoadController: handle_selected_flow()')
         report = {"stage_str": "end", "flow_str": flow}
-        self.model.report_model.report_save(report)
+        self.model.report_stage_flow_model.report_save(report)
 
     def update_view(self):
-        current_report = self.model.report_model.current_report
+        current_report = self.model.report_stage_flow_model.current_report
         print(f'FlowLoadController: update_view() {current_report=}')
         if current_report:
             stage = current_report["stage_str"]

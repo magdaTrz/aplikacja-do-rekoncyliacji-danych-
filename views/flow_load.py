@@ -2,15 +2,16 @@ import tkinter as tk
 from tkinter import Frame, Label, Button, PhotoImage, ttk, scrolledtext
 from PIL import Image, ImageTk
 from tkcalendar import Calendar
+from text_variables import TextEnum
 
 import paths
 
 button_data = [
-    {"name": "koi_btn", "text": "Klienci i Instytucje", "y": 165},
-    {"name": "umo_btn", "text": "Umowy", "y": 200},
-    {"name": "ksgpw_btn", "text": "Księgowania PW", "y": 235},
-    {"name": "ksgfin_btn", "text": "Ksiegowania Fin", "y": 270},
-    {"name": "mate_btn", "text": "Baza Mate", "y": 305},
+    {"name": f"{TextEnum.KOI}_btn", "text": "Klienci i Instytucje", "y": 165},
+    {"name": f"{TextEnum.UMO}_btn", "text": "Umowy", "y": 200},
+    {"name": f"{TextEnum.KSGPW}_btn", "text": "Księgowania PW", "y": 235},
+    {"name": f"{TextEnum.KSGFIN}_btn", "text": "Ksiegowania Fin", "y": 270},
+    {"name": f"{TextEnum.MATE}_btn", "text": "Baza Mate", "y": 305},
 ]
 
 
@@ -50,11 +51,11 @@ class FlowLoadView(Frame):
         self.choose_dir_to_save_filedialog_btn.place(x=330, y=50, width=30, height=30)
 
         # btn from where files are
-        self.header_filedialog_label = ttk.Label(self, text="", anchor='nw', justify="left", wraplength=280)
-        self.header_filedialog_label.place(x=360, y=90, width=300, height=30)
+        self.data_folder_path_label = ttk.Label(self, text="", anchor='nw', justify="left", wraplength=280)
+        self.data_folder_path_label.place(x=360, y=90, width=300, height=30)
 
-        self.filedialog_btn = ttk.Button(self, image=self.folder_icon)
-        self.filedialog_btn.place(x=330, y=90, width=30, height=30)
+        self.choose_dir_fromwhere_data_filedialog_btn = ttk.Button(self, image=self.folder_icon)
+        self.choose_dir_fromwhere_data_filedialog_btn.place(x=330, y=90, width=30, height=30)
 
         # btn set password
         self.set_password_btn = ttk.Button(self, image=self.lock_icon)

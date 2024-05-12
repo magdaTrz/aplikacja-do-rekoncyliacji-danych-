@@ -16,7 +16,7 @@ class Report(TypedDict):
     flow_str: str
 
 
-class ReportModel(ObservableModel):
+class ReportStageFlowModel(ObservableModel):
     def __init__(self):
         super().__init__()
         self.flow_is_changed = False
@@ -46,23 +46,29 @@ class BaseDataFrameModel(ObservableModel):
         self.current_number_report_is_changed = False
         self.number_of_reports = 1
         self.data_folder_report_path = ''
+        self.data_folder_report_path_is_changed = False
         self.save_report_folder_path = ''
+        self.save_report_path_is_changed = False
         self.password_report = ''
         self.migration_date = ''
 
     def set_save_report_folder_path(self, path: str):
-        print(f'set_save_report_folder_path(): {path}')
+        print(f'MODEL: BaseDataFrameModel(): set_save_report_folder_path(): {path}')
+        self.save_report_path_is_changed = True
         self.save_report_folder_path = path
+        self.trigger_event('save_report_path_changed')
 
     def set_data_folder_path(self, path: str):
         print(f'set_data_folder_path(): {path}')
+        self.data_folder_report_path_is_changed = True
         self.data_folder_report_path = path
+        self.trigger_event('data_folder_report_path_changed')
 
-    def set_password_to_report(self, password):
+    def set_password_to_report(self, password: str):
         print(f"set_password_to_report(): {password} ")
         self.password_report = password
 
-    def set_migration_date(self, date):
+    def set_migration_date(self, date: str):
         print(f"set_migration_date(): {date}")
         self.migration_date = date
 
@@ -71,21 +77,20 @@ class BaseDataFrameModel(ObservableModel):
         self.current_number_report = number
         self.trigger_event('current_number_report_changed')
 
-    def make_dataframe_from_file(self, path_to_file: str) -> DataFrame | ReconciliationFileNotFoundError | Any:
-        dir_str_path = os.path.join(self.dir_path, path_to_file)
-        if os.path.exists(dir_str_path):
-            try:
-                dataframe = pandas.read_csv(dir_str_path, sep='|', header=None, low_memory=False)
-                ProgresBarStatus.increase()
-                return dataframe
-            except ParserError:
-                # TODO: Obsłużyć taki wyjątek.
-                return
-        else:
-            return ReconciliationFileNotFoundError()
 
-    def set_colum_names(self, col_names: dict[int, str], dataframe: pandas.DataFrame) -> pandas.DataFrame:
-        print('BaseDataFrameModel: set_colum_names()')
+class ReportModel(ObservableModel):
+    def __init__(self):
+        super().__init__()
+        print(f"ReportModel(): init class")
+        self.report_end_is_changed = False
+
+    def update_view_report(self):
+        self.report_end_is_changed = True
+        self.trigger_event('report_has_completed_event')
+
+    @staticmethod
+    def set_colum_names(col_names: dict[int, str], dataframe: pandas.DataFrame) -> pandas.DataFrame:
+        print('ReportModel: set_colum_names()')
         try:
             ProgresBarStatus.increase()
             if dataframe is not None:
@@ -93,24 +98,57 @@ class BaseDataFrameModel(ObservableModel):
                 ProgresBarStatus.increase()
                 return dataframe
             else:
-                print('BaseDataFrameModel: set_colum_names(): ERROR: Dataframe is None')
+                print('ReportModel: set_colum_names(): ERROR: Dataframe is None')
         except pandas.errors.ParserError:
-            print('BaseDataFrameModel: set_colum_names(): ERROR: ParserError')
+            print('ReportModel: set_colum_names(): ERROR: ParserError')
+            return pandas.DataFrame()
+        except AttributeError:
+            print('ReportModel: set_colum_names(): ERROR: AttributeError')
+            return pandas.DataFrame()
 
-    def delete_unmigrated_records(self, dataframe: pandas.DataFrame) -> pandas.DataFrame:
-        unmigrated_dataframe = pandas.read_csv('support_file_unmigrated_id.csv')
+    @staticmethod
+    def delete_unmigrated_records(dataframe: pandas.DataFrame) -> pandas.DataFrame:
+        path = os.path.join(os.getcwd(), '_logi')
+        path_to_file = os.path.join(path, '_reko_plik_pomocniczy_niemigrowane_id.csv')
+        unmigrated_dataframe = pandas.read_csv(path_to_file)
         return dataframe[~dataframe['numer'].isin(unmigrated_dataframe['numer'])]
 
-    def delete_empty_columns(self, dataframe: pandas.DataFrame) -> pandas.DataFrame:
+    @staticmethod
+    def delete_empty_columns(dataframe: pandas.DataFrame) -> pandas.DataFrame:
         empty_col = dataframe.columns[dataframe.isnull().all()]
         dataframe = dataframe.drop(columns=empty_col)
         return dataframe
 
-    def mapp_values(self, dataframe, column_to_fill, column_to_take, map_dict) -> pandas.DataFrame:
-        if column_to_fill not in dataframe.columns:
-            raise ValueError(f"Kolumna {column_to_fill} nie istnieje w DataFrame.")
-        if column_to_take not in dataframe.columns:
-            raise ValueError(f"Kolumna {column_to_take} nie istnieje w DataFrame.")
-        dataframe.loc[:, column_to_fill] = dataframe[column_to_take].map(map_dict).fillna(dataframe[column_to_fill])
+    @staticmethod
+    def mapp_values(dataframe, columns_to_fill, columns_to_take, map_dict) -> pandas.DataFrame:
+        if not isinstance(map_dict, dict):
+            raise ValueError("map_dict powinien być słownikiem.")
+
+        missing_columns = [col for col in columns_to_fill + columns_to_take if col not in dataframe.columns]
+        if missing_columns:
+            raise ValueError(f"Kolumny {missing_columns} nie istnieją w DataFrame.")
+
+        for fill_col, take_col in zip(columns_to_fill, columns_to_take):
+            dataframe[fill_col] = dataframe[take_col].map(map_dict).fillna(dataframe[fill_col])
+
         return dataframe
 
+    @staticmethod
+    def make_dataframe_from_file(path_to_file: str,
+                                 path_to_folder: str, dtype=None,
+                                 sep='|') -> DataFrame | ReconciliationFileNotFoundError | Any:
+        dir_str_path = os.path.join(path_to_folder, path_to_file)
+        if os.path.exists(dir_str_path):
+            try:
+                if dtype is None:
+                    dataframe = pandas.read_csv(dir_str_path, sep=sep, header=None, low_memory=False)
+                else:
+                    dataframe = pandas.read_csv(dir_str_path, sep=sep, header=None, low_memory=False, dtype=dtype)
+                ProgresBarStatus.increase()
+                return dataframe
+            except ParserError:
+                print(f"make_dataframe_from_file() ParserError")
+                # TODO: Obsłużyć taki wyjątek.
+                return
+        else:
+            return ReconciliationFileNotFoundError()

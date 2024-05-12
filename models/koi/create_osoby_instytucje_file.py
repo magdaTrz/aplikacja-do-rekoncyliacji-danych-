@@ -72,7 +72,7 @@ class OsobyInstytucjeFile(BaseDataFrameModel):
         osoby_instytucje_df = self.create_koi_file(dataframe=df_c[['numer_maestro', 'numer', 'typ', 'pesel', 'nazwa2',
                                                                    'nazwa1', 'status']])
         ProgresBarStatus.increase_stage()
-        self.file_csv_write(osoby_instytucje_df, 'osoby_instytucje_file.csv', na_rep='NULL')
+        self.file_csv_write(osoby_instytucje_df, '_reko_osoby_instytucje_file.csv', na_rep='NULL')
         ProgresBarStatus.increase_stage()
         """ Note: Wywołanie funckcji tworzącej plik pomocniczy umo_osoba_file.csv """
         self.create_umo_osoba_file(dataframe=osoby_instytucje_df)
@@ -99,14 +99,14 @@ class OsobyInstytucjeFile(BaseDataFrameModel):
         grouped_pesel_numer = df_c_sorted.groupby('pesel')['numer'].apply(list)
         filtered_pesel_numer = grouped_pesel_numer[grouped_pesel_numer.apply(len) > 1]
         result_df = pandas.DataFrame(filtered_pesel_numer).reset_index()
-        self.file_csv_write(result_df, 'plik_pomocniczy_dla_umo_osoba.csv')
+        self.file_csv_write(result_df, '_reko_plik_pomocniczy_dla_umo_osoba.csv')
         return
 
     def create_niemigrowane_file(self, dataframe: pandas.DataFrame):
         filtered_ids = pandas.DataFrame()
         filtered_ids['numer'] = dataframe.loc[dataframe['status'] == 'NIEMIGRUJEMY', 'numer']
         filtered_ids['typ'] = dataframe.loc[dataframe['status'] == 'NIEMIGRUJEMY', 'typ']
-        self.file_csv_write(filtered_ids, 'plik_pomocniczy_niemigrowane_id.csv')
+        self.file_csv_write(filtered_ids, '_reko_plik_pomocniczy_niemigrowane_id.csv')
 
     def check_type(self, dataframe):
         """

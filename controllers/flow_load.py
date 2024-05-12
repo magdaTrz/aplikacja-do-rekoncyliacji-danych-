@@ -1,11 +1,11 @@
 import os.path
 import tkinter as tk
-import paths
 
 from models.main import Model
 from tkinter import filedialog, ttk
 from views.main import View
-
+from paths import flow_paths
+from text_variables import TextEnum
 
 class FlowLoadController:
     def __init__(self, model: Model, view: View) -> None:
@@ -17,18 +17,18 @@ class FlowLoadController:
     def _bind(self) -> None:
         """Binds controller functions with respective buttons in the view"""
         self.frame.back_btn.config(command=self.handle_back)
-        self.frame.koi_btn.config(command=lambda: self.handle_selected_flow(flow='koi'))
-        self.frame.umo_btn.config(command=lambda: self.handle_selected_flow(flow='umo'))
-        self.frame.ksgpw_btn.config(command=lambda: self.handle_selected_flow(flow='ksgpw'))
-        self.frame.ksgfin_btn.config(command=lambda: self.handle_selected_flow(flow='ksgfin'))
-        self.frame.mate_btn.config(command=lambda: self.handle_selected_flow(flow='mate'))
+        self.frame.KOI_btn.config(command=lambda: self.handle_selected_flow(flow=TextEnum.KOI))
+        self.frame.UMO_btn.config(command=lambda: self.handle_selected_flow(flow=TextEnum.UMO))
+        self.frame.KSGPW_btn.config(command=lambda: self.handle_selected_flow(flow=TextEnum.KSGPW))
+        self.frame.KSGFIN_btn.config(command=lambda: self.handle_selected_flow(flow=TextEnum.KSGFIN))
+        self.frame.MATE_btn.config(command=lambda: self.handle_selected_flow(flow=TextEnum.MATE))
 
-        self.frame.header_filedialog_label.bind('<Button-1>', self.set_data_folder_path_controller())
-        self.frame.filedialog_btn.config(command=lambda: self.choose_folder(path_to='data_folder_report_path'))
+        self.frame.data_folder_path_label.bind('<Button-1>', self.set_data_folder_path_controller())
+        self.frame.choose_dir_fromwhere_data_filedialog_btn.config(command=lambda: self.choose_folder(folder='data_folder_report_path'))
 
         self.frame.where_save_reports_label.bind('<Button-1>', self.set_save_reports_folder_path_controller())
         self.frame.choose_dir_to_save_filedialog_btn.config(
-            command=lambda: self.choose_folder(path_to='save_report_folder_path'))
+            command=lambda: self.choose_folder(folder='save_report_folder_path'))
 
         self.password = self.frame.set_password_btn.config(command=self.set_password_to_report)
         self.migration_date = self.frame.set_migration_date_btn.config(command=self.set_migration_date)
@@ -36,26 +36,46 @@ class FlowLoadController:
         self.frame.check_btn.config(command=self.switch_to_report)
         self.frame.xmark_btn.config(command=self.xmark_do_report)
 
-    def set_data_folder_path_controller(self, path=None) -> None:
-        if path is None:
-            _path = os.path.join(os.getcwd(), 'dane')
-            self.model.base_data_frame_model.set_data_folder_path(_path)
-            self.frame.header_filedialog_label.config(text=f'{_path}')
-        else:
+    def set_data_folder_path_controller(self, path='') -> None:
+        print(f'set_data_folder_path_controller(): {path}')
+        if path != '':
             self.model.base_data_frame_model.set_data_folder_path(path)
-            self.frame.header_filedialog_label.config(text=f'{path}')
-
-    def set_save_reports_folder_path_controller(self, path=None) -> None:
-        if path is None:
-            _path = os.path.join(os.getcwd(), 'raporty')
-            self.model.base_data_frame_model.set_save_report_folder_path(_path)
-            self.frame.where_save_reports_label.config(text=f'{_path}')
+            self.frame.data_folder_path_label.config(text=f'{path}')
+        elif path == '':
+            path = os.path.join(os.getcwd(), 'dane')
+            self.model.base_data_frame_model.set_data_folder_path(path)
+            self.frame.data_folder_path_label.config(text=f'{path}')
         else:
+            path = self.model.base_data_frame_model.data_folder_report_path
+            # self.model.base_data_frame_model.set_data_folder_path(path)
+            self.frame.data_folder_path_label.config(text='')
+            self.frame.data_folder_path_label.config(text=f'{path}')
+
+    def set_save_reports_folder_path_controller(self, path='') -> None:
+        print(f'set_save_reports_folder_path_controller(): {path}')
+        if path != '':
             self.model.base_data_frame_model.set_save_report_folder_path(path)
             self.frame.where_save_reports_label.config(text=f'{path}')
+        elif path == '':
+            path = os.path.join(os.getcwd(), 'raporty')
+            self.model.base_data_frame_model.set_save_report_folder_path(path)
+            self.frame.where_save_reports_label.config(text=f'{path}')
+        else:
+            path = self.model.base_data_frame_model.save_report_folder_path
+            self.frame.where_save_reports_label.config(text='')
+            self.frame.where_save_reports_label.config(text=f'{path}')
+            self.frame.update_idletasks()
+
+    def save_report_folder_path_update_view(self):
+        path = self.model.base_data_frame_model.save_report_folder_path
+        self.frame.where_save_reports_label.config(text=f'{path}')
+
+    def data_folder_report_path_update_view(self):
+        path = self.model.base_data_frame_model.data_folder_report_path
+        self.frame.data_folder_path_label.config(text=f'{path}')
 
     def handle_back(self) -> None:
-        current_report = self.model.report_model.current_report
+        current_report = self.model.report_stage_flow_model.current_report
         print(f"FlowLoadController: handle_back(){current_report=} \
               {self.model.base_data_frame_model.save_report_folder_path} \
               {self.model.base_data_frame_model.data_folder_report_path}")
@@ -65,25 +85,30 @@ class FlowLoadController:
         self.view.switch('stage')
 
     def handle_selected_flow(self, flow: str) -> None:
-        report = {"stage_str": "load", "flow_str": flow}
-        self.model.report_model.report_save(report)
+        report = {"stage_str": TextEnum.LOAD, "flow_str": flow}
+        self.model.report_stage_flow_model.report_save(report)
         for child in self.frame.winfo_children():
             if child.winfo_class() == "Button":
                 child.config(fg_color="black")
-        name_btn = flow + '_btn'
+        name_btn = str(flow) + '_btn'
         if hasattr(self.frame, name_btn):
-            getattr(self.frame, name_btn).config(fg_color="red")
+            style = ttk.Style()
+            style.configure("Red.TButton", background="red", foreground="red")
+            style.map("Red.TButton",
+                      background=[("pressed", "red")],
+                      foreground=[("pressed", "red")])
+            getattr(self.frame, name_btn).config(style="Red.TButton")
         else:
             self.add_text_to_info_label('Naciśnięto niepoprawny przycisk.')
 
     def update_view(self):
-        current_report = self.model.report_model.current_report
+        current_report = self.model.report_stage_flow_model.current_report
         if current_report:
             stage = current_report["stage_str"]
             flow = current_report["flow_str"]
 
             self.add_text_to_info_label(f'Sprawdzam czy dla raportu GoForLoad {flow} są wszystkie potrzebne pliki.')
-            missing_files = self.check_folder_for_files(eval(f'paths.{flow}_paths'))
+            missing_files = self.check_folder_for_files(flow_paths.get(str(flow) + '_paths', []))
             if missing_files is None:
                 self.add_text_to_info_label('Wszytkie potrzebne pliki znajdują się w folderze.')
                 self.frame.start_btn.place(x=390, y=430, width=165, height=40)
@@ -95,21 +120,22 @@ class FlowLoadController:
         else:
             print(f"ERROR: 'FlowLoadController: update_view() {current_report=}'")
 
-    def choose_folder(self, path_to: str) -> None:
+    def choose_folder(self, folder: str) -> None:
         print(f'FlowLoadController: choose_folder( )')
         folder_path = filedialog.askdirectory()
-        if folder_path and path_to == 'data_folder_report_path':
-            self.set_data_folder_path_controller(folder_path)
-            self.add_text_to_info_label('Zmieniono folder z którego pobiane są dane do raportów.')
-        elif folder_path and path_to == 'save_report_folder_path':
-            self.set_save_reports_folder_path_controller(folder_path)
-            self.add_text_to_info_label('Zmieniono folder w którym zostaną zapisane raporty.')
+        if folder_path:
+            if folder == 'data_folder_report_path':
+                self.set_data_folder_path_controller(folder_path)
+                self.add_text_to_info_label('Zmieniono folder z którego pobiane są dane do raportów.')
+            if folder == 'save_report_folder_path':
+                self.set_save_reports_folder_path_controller(folder_path)
+                self.add_text_to_info_label('Zmieniono folder w którym zostaną zapisane raporty.')
 
     def switch_to_report(self) -> None:
         print(f'FlowLoadController: switch_to_report()')
-        self.model.report_model.call_the_report_generation_function()
+        self.model.report_stage_flow_model.call_the_report_generation_function()
 
-    def check_folder_for_files(self, paths_: str) -> list[str] | None:
+    def check_folder_for_files(self, paths_: list[dict]) -> list[str] | None:
         print(f'FlowLoadController: check_folder_for_files()')
 
         directory_path = self.model.base_data_frame_model.data_folder_report_path

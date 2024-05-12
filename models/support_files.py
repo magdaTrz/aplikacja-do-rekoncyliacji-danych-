@@ -63,10 +63,18 @@ def check_type(dataframe):
     return filtered_df
 
 
+def get_log_file_path():
+    if not os.path.exists('_logi'):
+        os.makedirs('_logi')
+    return '_logi'
+
+
 def map_values_based_on_two_columns(dataframe: pandas.DataFrame, column_to_fill: str, column1: str, column2,
                                     map_dict) -> pandas.DataFrame:
-    dataframe.loc[:, column_to_fill] = dataframe.apply(lambda row: map_dict.get((row[column1], row[column2]), None),
-                                                       axis=1)
+    dataframe[column1] = dataframe[column1].astype(str).str.rstrip('.0')
+    dataframe.loc[:, column_to_fill] = dataframe.apply(
+        lambda row: map_dict.get((str(row[column1]), str(row[column2])), None),
+        axis=1)
     return dataframe
 
 
@@ -78,6 +86,7 @@ def mapp_values(dataframe: pandas.DataFrame, column_to_fill, column_to_take, map
 def file_csv_write(dataframe: pandas.DataFrame, name_file: str, na_rep=None) -> bool:
     while True:
         try:
+            name_file = os.path.join(get_log_file_path(), name_file)
             dataframe.to_csv(name_file, index=False, na_rep=na_rep)
             return True
         except PermissionError:
@@ -87,16 +96,19 @@ def file_csv_write(dataframe: pandas.DataFrame, name_file: str, na_rep=None) -> 
 class SupportFiles(ObservableModel):
     def __init__(self):
         super().__init__()
-        self._path_support_file_folder = path_support_files_folder
+        self._path_support_file_folder = ''
         self.file_paths_list = []
         self.progress_value = 0
 
-    def set_path(self, path: str):
+    def set_path(self, path: str) -> None:
+        print(f'SupportFiles: set_path(): {path}')
         self._path_support_file_folder = path
-        return
 
-    def check_for_files(self, file_name) -> bool:
+    def check_for_files(self, file_name: str) -> bool:
         """Checking if files exist and """
+        if self._path_support_file_folder == '':
+            path = os.path.join(os.getcwd(), 'dane')
+            self.set_path(path)
         file_path = os.path.join(self._path_support_file_folder, file_name)
         #  check if path to file exist
         if os.path.exists(file_path):
@@ -174,7 +186,8 @@ class SupportFiles(ObservableModel):
         df_migrujemy = dataframe[dataframe['status'] == 'MIGRUJEMY']
         df_niemigrujemy = df_niemigrujemy.drop(columns=['status'])
         df_migrujemy = df_migrujemy.drop(columns=['status'])
-        df_is_migrated = pandas.merge(df_niemigrujemy, df_migrujemy, on='pesel', how='inner', suffixes=('_przegr', '_wygr'))
+        df_is_migrated = pandas.merge(df_niemigrujemy, df_migrujemy, on='pesel', how='inner',
+                                      suffixes=('_przegr', '_wygr'))
         file_csv_write(df_is_migrated, '_reko_pesel_wygr_przegr.csv')
         self.progress_value += 10
 
@@ -183,4 +196,3 @@ class SupportFiles(ObservableModel):
         non_migrated['typ'] = dataframe.loc[dataframe['status'] == 'ds', 'typ']
         file_csv_write(non_migrated, '_reko_plik_pomocniczy_niemigrowane_id.csv')
         self.progress_value += 100
-

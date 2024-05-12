@@ -21,7 +21,6 @@ class StageView(Frame):
         self.background_transparent_image = PhotoImage(file=paths.path_background_stage_settings)
         resized_background_transparent_image = Image.open(paths.path_background_stage_settings)
         self.background_transparent_image = ImageTk.PhotoImage(resized_background_transparent_image)
-
         self.background_image_label = ttk.Label(self, image=self.background_transparent_image)
 
         # btn back
@@ -37,6 +36,8 @@ class StageView(Frame):
         self.add_folder_icon = tk.PhotoImage(file=paths.path_add_folder_icon)
         self.excel_icon = tk.PhotoImage(file=paths.path_excel_icon)
         self.gear_icon = tk.PhotoImage(file=paths.path_gear_icon)
+        self.save_icon = tk.PhotoImage(file=paths.path_save_icon)
+        self.popup_window = None
 
         # btn expand
         self.buttons_expanded = False
@@ -44,7 +45,7 @@ class StageView(Frame):
                                         compound="left")
         self.expand_button.place(x=450, y=60, width=140, height=40)
 
-        self.progress_bar = ttk.Progressbar(self, orient="horizontal", length=385, mode="determinate")
+        self.progress_bar = ttk.Progressbar(self, orient="horizontal", length=210, mode="determinate")
 
         # btn generate support files and filedialog
         self.generate_support_files_btn = ttk.Button(self, text="Wygeneruj pliki pomocnicze")
@@ -61,7 +62,7 @@ class StageView(Frame):
         self.dictionaries_filedialog_btn.place(x=235, y=155, width=40, height=40)
 
         # btn change save dictionaries filedialog
-        self.save_dictionaries_btn = ttk.Button(self, text="   Zmień miejsce zapisu raportów", image=self.folder_icon,
+        self.save_dictionaries_btn = ttk.Button(self, text="   Zmień miejsce zapisu raportów", image=self.save_icon,
                                                 compound="left")
 
         # btn choose folder filedialog
@@ -71,8 +72,7 @@ class StageView(Frame):
 
         # btn summary report filedialog
         self.summary_report_btn = ttk.Button(self, text="   Podsumuj raport                            ",
-                                            image=self.excel_icon,
-                                            compound="left")
+                                             image=self.excel_icon, compound="left")
 
         self.report_load_btn = ttk.Button(self, text="Raporty Go4Load")
         self.report_load_btn.place(x=60, y=279, width=165, height=40)
@@ -97,3 +97,32 @@ class StageView(Frame):
 
             self.expand_button.config(text="   Ustawienia")
             self.buttons_expanded = False
+
+    def show_popup_window(self, title: str, text: str) -> None:
+
+        def on_close():
+            nonlocal self
+            self.popup_window.destroy()
+            self.progress_bar.place_forget()
+
+        self.popup_window = tk.Toplevel(self)
+        self.popup_window.title(title)
+
+        # Ustawienie wielkości okna
+        width = 400
+        height = 200
+        x = (self.winfo_screenwidth() - width) // 2
+        y = (self.winfo_screenheight() - height) // 2
+        self.popup_window.geometry('{}x{}+{}+{}'.format(width, height, x, y))
+
+        # Ustawienie okna na środku okna rodzica
+        self.update_idletasks()
+        window_x = self.winfo_rootx() + (self.winfo_width() - width) // 2
+        window_y = self.winfo_rooty() + (self.winfo_height() - height) // 2
+        self.popup_window.geometry('+{}+{}'.format(window_x, window_y))
+
+        # Dodanie etykiety z komunikatem
+        label = ttk.Label(self.popup_window, text=text, wraplength=350)
+        label.pack(pady=20, padx=20)
+
+        self.popup_window.protocol("WM_DELETE_WINDOW", on_close)

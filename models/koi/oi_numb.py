@@ -4,48 +4,48 @@ import pandas
 import paths
 from controllers.progress_bar import ProgresBarStatus
 from models.excel_report import ExcelReport
-from models.report_model import BaseDataFrameModel
+from models.report_model import ReportModel
+from text_variables import TextEnum
 
 
-class OiNumb(BaseDataFrameModel):
-    def __init__(self, stage: str, path_src=None, path_ext=None, path_tgt=None):
+class OiNumb(ReportModel):
+    def __init__(self, stage: str, path_src=None, path_ext=None, path_tgt=None, data_folder_report_path=''):
         super().__init__()
         self.stage = stage
         self.path_src = path_src
         self.path_ext = path_ext
         self.path_tgt = path_tgt
+        self.data_folder_report_path = data_folder_report_path
         self.path_excel = None
 
-    def _carry_operations(self):
-        ext_dataframe = self.make_dataframe_from_file(self.path_ext)
+    def _carry_operations(self) -> bool:
+        print(f'OiNumb: _carry_operations(stage={self.stage})')
+        ext_dataframe = self.make_dataframe_from_file(self.path_ext, self.data_folder_report_path)
         ext_dataframe = self.set_colum_names({0: 'oi_id', 1: 'symbol', 2: 'numer', 3: 'data'}, ext_dataframe)
-        if self.stage == 'load':
-            src_dataframe = self.make_dataframe_from_file(self.path_src)
+        if self.stage == TextEnum.LOAD:
+            src_dataframe = self.make_dataframe_from_file(self.path_src, self.data_folder_report_path)
             src_dataframe = self.set_colum_names({0: 'oi_id', 1: 'symbol', 2: 'numer', 3: 'data'}, src_dataframe)
 
-            support_dataframe = self.make_dataframe_from_file('rfs_klienci_dodatkowe_src.txt')
+            support_dataframe = self.make_dataframe_from_file('rfs_klienci_dodatkowe_src.txt',
+                                                              self.data_folder_report_path)
             support_dataframe = self.set_colum_names({0: 'numer', 1: 'data', 2: 'pesel', 3: 'cif', 4: 'nip',
                                                       5: 'regon', 6: 'krs'}, support_dataframe)
-            support_dataframe = self.create_oi_numb_side_files(support_dataframe)
-            support_dataframe = self.delete_unmigrated_records(support_dataframe, 'numer')
 
             if src_dataframe.empty or ext_dataframe.empty or support_dataframe.empty:
-                return
+                return False
             else:
                 src_dataframe = self.convert_src(src_dataframe, support_dataframe)
                 ext_dataframe = self.convert_ext(ext_dataframe)
-                excel_workbook = ExcelReport(paths.oi_numb_excel_path)
-                excel_workbook.create_f2f_report(stage='load', dataframe_1=src_dataframe, dataframe_2=ext_dataframe,
-                                                 merge_on_cols=["oi_id", "symbol"], compare_cols=['numer', 'data'],
-                                                 text_description='', file_name=paths.oi_numb_excel_path,
-                                                 sheet_name="f2f_oi_numb")
-                src_dataframe.to_csv('OiNumb-src.csv')
-                ext_dataframe.to_csv('OiNumb-ext.csv')
-                return
+                # excel_workbook = ExcelReport(paths.oi_numb_excel_path)
+                # excel_workbook.create_f2f_report(stage='load', dataframe_1=src_dataframe, dataframe_2=ext_dataframe,
+                #                                  merge_on_cols=["oi_id", "symbol"], compare_cols=['numer', 'data'],
+                #                                  text_description='', file_name=paths.oi_numb_excel_path,
+                #                                  sheet_name="f2f_oi_numb")
+                ProgresBarStatus.increase()
+                return True
 
-            ProgresBarStatus.increase()
-        if self.stage == 'end':
-            tgt_dataframe = self.make_dataframe_from_file(self.path_tgt)
+        if self.stage == TextEnum.END:
+            tgt_dataframe = self.make_dataframe_from_file(self.path_tgt, self.data_folder_report_path)
             tgt_dataframe = self.set_colum_names({0: 'oi_id', 1: 'symbol', 2: 'numer', 3: 'data'}, tgt_dataframe)
 
             if ext_dataframe or tgt_dataframe is None:
@@ -120,11 +120,4 @@ class OiNumb(BaseDataFrameModel):
 
     def convert_tgt(self, dataframe: pandas.DataFrame) -> pandas.DataFrame:
         dataframe = dataframe.astype({'symbol': str, 'numer': str})
-        return dataframe
-
-    def create_oi_numb_side_files(self, dataframe: pandas.DataFrame):
-        dataframe.loc[:, 'numer'] = dataframe.loc[:, 'numer'].astype(str)
-        dataframe.loc[dataframe['pesel'] == '00000000000', 'pesel']
-        dataframe.loc[dataframe['pesel'] == '00000000000', 'pesel'] = numpy.nan
-        dataframe.loc[dataframe['pesel'] == ' ', 'pesel'] = numpy.nan
         return dataframe

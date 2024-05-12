@@ -3,36 +3,39 @@ import pandas
 
 from controllers.progress_bar import ProgresBarStatus
 from models.koi import dict_KOI
-from models.report_model import BaseDataFrameModel
+from models.report_model import ReportModel
+from text_variables import TextEnum
 
 
-class OiAtryb(BaseDataFrameModel):
-    def __init__(self, stage: str, path_src=None, path_ext=None, path_tgt=None):
+class OiAtryb(ReportModel):
+    def __init__(self, stage: str, path_src=None, path_ext=None, path_tgt=None, data_folder_report_path=''):
         super().__init__()
         self.stage = stage
         self.path_src = path_src
         self.path_ext = path_ext
         self.path_tgt = path_tgt
+        self.data_folder_report_path = data_folder_report_path
         self.path_excel = None
 
-    def _carry_operations(self):
-        ext_dataframe = self.make_dataframe_from_file(self.path_ext)
+    def _carry_operations(self) -> bool:
+        print(f'OiAtryb: _carry_operations(stage={self.stage})')
+        ext_dataframe = self.make_dataframe_from_file(self.path_ext, self.data_folder_report_path)
         ext_dataframe = self.set_colum_names({0: "oi_id", 1: "symbol", 2: "wartosc"},
                                              ext_dataframe)
-        if self.stage == 'load':
-            src_dataframe = self.make_dataframe_from_file(self.path_src)
-            src_dataframe = self.set_colum_names({0: 'numer', 1: 'data', 2: 'pesel', 3: 'cif', 4: 'nip', 5: 'regon', 6: 'krs', 7: 'fop',
-                            8: 'rezydent', 9: 'obywatelstwo', 10: 'nr_nik'},
-                                                 src_dataframe)
+        if self.stage == TextEnum.LOAD:
+            src_dataframe = self.make_dataframe_from_file(self.path_src, self.data_folder_report_path)
+            src_dataframe = self.set_colum_names(
+                {0: 'numer', 1: 'data', 2: 'pesel', 3: 'cif', 4: 'nip', 5: 'regon', 6: 'krs', 7: 'fop', 8: 'rezydent',
+                 9: 'obywatelstwo', 10: 'nr_nik'}, src_dataframe)
 
             if src_dataframe.empty or ext_dataframe.empty:
-                return
+                return False
             else:
                 src_dataframe = self.convert_src(src_dataframe)
-                return
-            ProgresBarStatus.increase()
+                ProgresBarStatus.increase()
+                return True
 
-        if self.stage == 'end':
+        if self.stage == TextEnum.END:
             tgt_dataframe = self.make_dataframe_from_file(self.path_tgt)
             tgt_dataframe = self.set_colum_names({0: "oi_id", 1: "symbol", 2: "wartosc"},
                                                  tgt_dataframe)
@@ -49,7 +52,7 @@ class OiAtryb(BaseDataFrameModel):
         df_tos.loc[:, 'wartosc'] = None
         # df_tos.loc[:, 'rezydent'] = df_tos.loc[:, 'rezydent'].astype(str)
         df_tos = self.map_values_based_on_two_columns(dataframe=df_tos, column_to_fill='wartosc', column1='fop',
-                                                 column2='rezydent', map_dict=dict_KOI.dict_atryb_tos)
+                                                      column2='rezydent', map_dict=dict_KOI.dict_atryb_tos)
         del df_tos['fop']
         del df_tos['rezydent']
         df_tos = df_tos.rename(columns={'numer': 'oi_id', 'tos': 'symbol'})
@@ -71,13 +74,13 @@ class OiAtryb(BaseDataFrameModel):
         df_fop.loc[:, 'rezydent'] = "FOP"
         df_fop = df_fop.rename(columns={'numer': 'oi_id', 'rezydent': 'symbol', 'fop': 'wartosc'})
         df_fop = self.mapp_values(dataframe=df_fop, column_to_take='wartosc', column_to_fill='wartosc',
-                             map_dict=dict_KOI.dict_atryb_fop)
+                                  map_dict=dict_KOI.dict_atryb_fop)
 
         merged_df = pandas.concat([df_fop, df_www, df_obw, df_tos])
         return merged_df
 
     def convert_ext(self, dataframe: pandas.DataFrame) -> pandas.DataFrame:
-       pass
+        pass
 
     def convert_tgt(self, dataframe: pandas.DataFrame) -> pandas.DataFrame:
         pass
