@@ -22,5 +22,16 @@ class TextEnum(Enum):
 
 class TextGenerator:
     @staticmethod
-    def report_lable_text(arg1: str, arg2:str | None = None) -> str:
-        return f"Wygenerowano {arg1} raport {arg2}" if arg2 else f"Stworzono {arg1}"
+    def report_lable_text(arg1: str) -> str:
+        return f"Przechodzę do raportu {arg1}"
+
+    @staticmethod
+    def flow_lable_text() -> str:
+        return f"Inicjuję klasę"
+    @staticmethod
+    def mapping_lable_text() -> str:
+        return f"Przechodzę do mapowania pól"
+
+    @staticmethod
+    def report_lable_text() -> str:
+        return f"Tworzę i zapisuję rapot"
