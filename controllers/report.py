@@ -1,8 +1,10 @@
 import os
 import time
 import tkinter as tk
+from typing import Dict
 
 import openpyxl
+import pandas
 
 from models.main import Model
 from views.main import View
@@ -40,86 +42,6 @@ class ReportController:
         update_current_number_thread = Thread(target=self.update_view_current_number_report)
         update_current_number_thread.start()
 
-    def perform_operations(self):
-        print(f'ReportController: perform_operations()')
-        stage = self.model.report_stage_flow_model.current_report['stage_str']
-        flow = self.model.report_stage_flow_model.current_report['flow_str']
-        for path_info in flow_paths.get(f'{flow}_paths', []):
-            if stage == TextEnum.LOAD:
-                if flow == TextEnum.KOI:
-                    from models.koi.oi_adresy import OiAdresy
-                    from models.koi.oi_telecom import OiTelecom
-                    from models.koi.oi_numb import OiNumb
-                    from models.koi.oi_password import OiPassword
-                    from models.koi.osoby_instytucje import OsobyInstytucje
-                    from models.koi.oi_atryb import OiAtryb
-
-                    self.model.base_data_frame_model.number_of_reports = 6
-                    if path_info['name'] == 'osoby_instytucje':
-                        self.current_number_report_changed(1)
-                        dataframes_osoby_instytucje = OsobyInstytucje(
-                            stage=stage,
-                            path_src=path_info['src'],
-                            path_ext=path_info['ext'],
-                            data_folder_report_path=self.model.base_data_frame_model.data_folder_report_path,
-                            save_folder_report_path=self.model.base_data_frame_model.save_report_folder_path,
-                            path_excel_file=path_info['excel']
-                        )
-                        osoby_instytucje_conversion_success = dataframes_osoby_instytucje._carry_operations()
-                        if osoby_instytucje_conversion_success:
-                            dataframes_osoby_instytucje.create_report()
-                    if path_info['name'] == 'oi_password':
-                        self.current_number_report_changed(2)
-                        dataframes_oi_password = OiPassword(
-                            stage=stage,
-                            path_src=path_info['src'],
-                            path_ext=path_info['ext'],
-                            data_folder_report_path=self.model.base_data_frame_model.data_folder_report_path)
-                        oi_password_conversion_success = dataframes_oi_password._carry_operations()
-                    if path_info['name'] == 'oi_numb':
-                        self.current_number_report_changed(3)
-                        dataframes_oi_numb = OiNumb(
-                            stage=stage,
-                            path_src=path_info['src'],
-                            path_ext=path_info['ext'],
-                            data_folder_report_path=self.model.base_data_frame_model.data_folder_report_path)
-                        oi_numb_conversion_success = dataframes_oi_numb._carry_operations()
-                    if path_info['name'] == 'oi_adresy':
-                        self.current_number_report_changed(4)
-                        dataframes_oi_adresy = OiAdresy(
-                            stage=stage,
-                            path_src=path_info['src'],
-                            path_ext=path_info['ext'],
-                            data_folder_report_path=self.model.base_data_frame_model.data_folder_report_path)
-                        oi_adresy_conversion_success = dataframes_oi_adresy._carry_operations()
-                    if path_info['name'] == 'oi_atryb':
-                        self.current_number_report_changed(5)
-                        dataframes_oi_atrybuty = OiAtryb(
-                            stage=stage,
-                            path_src=path_info['src'],
-                            path_ext=path_info['ext'],
-                            data_folder_report_path=self.model.base_data_frame_model.data_folder_report_path)
-                        oi_atrybuty_conversion_success = dataframes_oi_atrybuty._carry_operations()
-                    if path_info['name'] == 'oi_telecom':
-                        self.current_number_report_changed(6)
-                        dataframes_oi_telecom = OiTelecom(
-                            stage=stage,
-                            path_src=path_info['src'],
-                            path_ext=path_info['ext'],
-                            data_folder_report_path=self.model.base_data_frame_model.data_folder_report_path)
-                        dataframes_oi_telecom._carry_operations()
-
-                elif flow == TextEnum.UMO:
-                    self.number_of_reports = 5
-                # will be two more flows KSGFIN, KSGPW, MATE
-
-            else:  # stage == 'end' there will be simillar actions like in LOAD but different path_src, path_ext it will be ext and tgt:
-                if flow == TextEnum.KOI:
-                    self.number_of_reports = 7
-            self.add_text_to_info_label(TextGenerator.report_lable_text(str(flow), str(path_info['name'])))
-        self.model.report_model.update_view_report()
-        self.model.report_model.report_end_is_changed = False
-
     def current_number_report_changed(self, number: int):
         self.model.base_data_frame_model.update_current_number_report(number)
 
@@ -150,7 +72,7 @@ class ReportController:
             print(f"An error occurred: {e}")
             self.add_text_to_info_label(f"Błąd otwierania folderu z raportami.")
 
-    def add_text_to_info_label(self, new_text: str, error:bool=False, important:bool=False) -> None:
+    def add_text_to_info_label(self, new_text: str, error: bool = False, important: bool = False) -> None:
         print(f'ReportController: add_text_to_info_label()')
         tags = []
         if error:
@@ -188,5 +110,81 @@ class ReportController:
             else:
                 return
 
-    def view_the_summary(self):
+    def handle_view_the_summary(self):
         print("ReportController: view_the_summary()")
+        self.model.base_data_frame_model.add_data_to_summary_view()
+        self.view.switch('summary')
+
+    def perform_operations(self) -> None:
+        stage: str = self.model.report_stage_flow_model.current_report['stage_str']
+        flow: str = self.model.report_stage_flow_model.current_report['flow_str']
+        self.add_text_to_info_label(f"Wykonuję raporty: {(str(flow))}")
+        i = 1
+        for path_info in flow_paths.get(f'{flow}_paths', []):
+            self.current_number_report_changed(i)
+            if stage == TextEnum.LOAD:
+                # wykonuje się tyle razy ile jest pod przepływów
+                self.add_text_to_info_label(TextGenerator.flow_lable_text())
+                self.process_path_info(flow, stage, path_info)
+            if stage == TextEnum.END:
+                print(TextEnum.END)
+            i+=1
+        self.model.report_model.update_view_report()
+        self.model.report_model.report_end_is_changed = False
+
+    def process_path_info(self, flow: str, stage: str, path_info: Dict[str, str]) -> None:
+        if flow == TextEnum.KOI:
+            self.model.base_data_frame_model.number_of_reports = 6
+            from models.koi.oi_adresy import OiAdresy
+            from models.koi.oi_telecom import OiTelecom
+            from models.koi.oi_numb import OiNumb
+            from models.koi.oi_password import OiPassword
+            from models.koi.osoby_instytucje import OsobyInstytucje
+            from models.koi.oi_atryb import OiAtryb
+            model_classes = {
+                'osoby_instytucje': OsobyInstytucje,
+                'oi_password': OiPassword,
+                # 'oi_atryb': OiAtryb,
+                # 'oi_adresy': OiAdresy,
+                # 'oi_telecom': OiTelecom,
+                # 'oi_numb': OiNumb,
+            }
+        elif flow == TextEnum.UMO:
+            self.model.base_data_frame_model.number_of_reports = 4
+            #...
+
+        for name, ModelClass in model_classes.items():
+            if path_info['name'] == name:
+                self.process_model(flow, stage, path_info, ModelClass)
+
+    def process_model(self, flow: str, stage: str, path_info: Dict[str, str], ModelClass: Model) -> None:
+        start_time: float = time.time()
+        self.add_text_to_info_label(TextGenerator.flow_lable_text())
+        dataframes = ModelClass(
+            stage=stage,
+            path_src=path_info['src'],
+            path_ext=path_info['ext'],
+            data_folder_report_path=self.model.base_data_frame_model.data_folder_report_path,
+            save_folder_report_path=self.model.base_data_frame_model.save_report_folder_path,
+            path_excel_file=path_info['excel']
+        )
+        self.add_text_to_info_label(TextGenerator.mapping_lable_text())
+        success: bool = dataframes._carry_operations()
+
+        total_rows = (dataframes.dataframe_src.shape[0] if dataframes.dataframe_src is not None else 0) + \
+                     (dataframes.dataframe_ext.shape[0] if dataframes.dataframe_ext is not None else 0)
+
+        report_data: Dict[str, str] = {
+            "Raport": path_info['name'],
+            'Plik Excel': path_info['excel'],
+            'Status': 'Sukces' if success else 'Błąd zapisu',
+            'Czas wykonywania': f'{time.time() - start_time:.2f} sec' if success else '-- sec',
+            'Liczba wierszy (dataframe_src)': f"{dataframes.dataframe_src.shape[0]} wierszy" if dataframes.dataframe_src is not None else "Brak danych",
+            'Liczba wierszy (dataframe_ext)': f"{dataframes.dataframe_ext.shape[0]} wierszy" if dataframes.dataframe_ext is not None else "Brak danych",
+            'Suma wierszy (łącznie z obu dataframe)': f"{total_rows} wierszy"
+        }
+
+        self.add_text_to_info_label(TextGenerator.report_lable_text())
+        dataframes.create_report()
+        self.model.base_data_frame_model.add_value_to_summary_dataframes_dict(report_data)
+
