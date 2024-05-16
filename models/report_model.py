@@ -51,6 +51,9 @@ class BaseDataFrameModel(ObservableModel):
         self.save_report_path_is_changed = False
         self.password_report = ''
         self.migration_date = ''
+        self.update_summary_is_clicked: bool = False
+        self.summary_dataframes_dataframe: pandas.DataFrame = \
+            pandas.DataFrame({'Raport': [], 'Plik Excel': [], 'Status': [], 'Czas wykonywania': []})
 
     def set_save_report_folder_path(self, path: str):
         print(f'MODEL: BaseDataFrameModel(): set_save_report_folder_path(): {path}')
@@ -64,6 +67,15 @@ class BaseDataFrameModel(ObservableModel):
         self.data_folder_report_path = path
         self.trigger_event('data_folder_report_path_changed')
 
+    def add_value_to_summary_dataframes_dict(self, new_row_data: pandas.DataFrame):
+        print(f'add_value_to_summary_dataframes_dict():')
+        self.summary_dataframes_dataframe = pandas.concat(
+            [self.summary_dataframes_dataframe, pandas.DataFrame([new_row_data])], ignore_index=True)
+
+    def get_all_summary_dataframes(self):
+        print(f'BaseDataFrameModel:get_all_summary_dataframes():')
+        return self.summary_dataframes_dataframe
+
     def set_password_to_report(self, password: str):
         print(f"set_password_to_report(): {password} ")
         self.password_report = password
@@ -76,6 +88,10 @@ class BaseDataFrameModel(ObservableModel):
         self.current_number_report_is_changed = True
         self.current_number_report = number
         self.trigger_event('current_number_report_changed')
+
+    def add_data_to_summary_view(self) -> None:
+        self.update_summary_is_clicked = True
+        self.trigger_event("view_summary_event")
 
 
 class ReportModel(ObservableModel):

@@ -38,8 +38,6 @@ class StageController:
 
         self.frame.choose_folder_btn.config(command=lambda: self.choose_folder(folder='data_folder_report_path'))
 
-        self.frame.summary_report_btn.config(command=self.handle_summary_report)
-
         self.frame.back_btn.config(command=self.handle_back)
 
     def check_directory(self) -> bool:
@@ -151,5 +149,3 @@ class StageController:
         self.frame.show_popup_window(title='Zakończono', text=f"Poprawnie zakończono aktualizację słowników.")
         return
 
-    def handle_summary_report(self) -> None:
-        print(f'handle_summary_report():')

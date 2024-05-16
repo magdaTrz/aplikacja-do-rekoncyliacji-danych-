@@ -24,7 +24,7 @@ class ReportController:
         """Binds controller functions with respective buttons in the view"""
         self.frame.back_btn.config(command=self.handle_back)
         self.frame.open_folder_btn.config(command=self.open_folder_with_reports)
-        self.frame.summary_btn.config(command=self.view_the_summary)
+        self.frame.summary_btn.config(command=self.handle_view_the_summary)
 
     def handle_back(self) -> None:
         current_report = self.model.report_stage_flow_model.current_report
