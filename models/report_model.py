@@ -19,9 +19,9 @@ class Report(TypedDict):
 class ReportStageFlowModel(ObservableModel):
     def __init__(self):
         super().__init__()
-        self.flow_is_changed = False
+        self.flow_is_changed: bool = False
         self.current_report: Union[Report, None] = None
-        self.is_btn_clicked = False
+        self.is_btn_clicked: bool = False
 
     def call_the_report_generation_function(self):
         self.is_btn_clicked = True
@@ -44,7 +44,7 @@ class BaseDataFrameModel(ObservableModel):
         self.progress_value_is_changed = False
         self.current_number_report = 1
         self.current_number_report_is_changed = False
-        self.number_of_reports = 1
+        self.number_of_reports = 6
         self.data_folder_report_path = ''
         self.data_folder_report_path_is_changed = False
         self.save_report_folder_path = ''
@@ -123,11 +123,11 @@ class ReportModel(ObservableModel):
             return pandas.DataFrame()
 
     @staticmethod
-    def delete_unmigrated_records(dataframe: pandas.DataFrame) -> pandas.DataFrame:
+    def delete_unmigrated_records(dataframe: pandas.DataFrame, column_name: str='numer') -> pandas.DataFrame:
         path = os.path.join(os.getcwd(), '_logi')
         path_to_file = os.path.join(path, '_reko_plik_pomocniczy_niemigrowane_id.csv')
         unmigrated_dataframe = pandas.read_csv(path_to_file)
-        return dataframe[~dataframe['numer'].isin(unmigrated_dataframe['numer'])]
+        return dataframe[~dataframe[column_name].isin(unmigrated_dataframe['numer'])]
 
     @staticmethod
     def delete_empty_columns(dataframe: pandas.DataFrame) -> pandas.DataFrame:

@@ -24,11 +24,11 @@ class Controller:
 
         self.model.report_stage_flow_model.add_event_listener("flow_changed", self.flow_state_listener)
         self.model.report_stage_flow_model.add_event_listener("view_to_report_changed", self.view_to_report_state_listener)
-        self.model.base_data_frame_model.add_event_listener('current_number_report_changed',
+        self.model.base_data_frame_model.add_event_listener("current_number_report_changed",
                                                             self.current_number_report_state_listener)
-        self.model.base_data_frame_model.add_event_listener('save_report_path_changed',
+        self.model.base_data_frame_model.add_event_listener("save_report_path_changed",
                                                             self.save_report_path_state_listener)
-        self.model.base_data_frame_model.add_event_listener('data_folder_report_path_changed',
+        self.model.base_data_frame_model.add_event_listener("data_folder_report_path_changed",
                                                             self.data_folder_report_path_state_listener)
         self.model.report_model.add_event_listener("report_has_completed_event", self.report_has_ended_state_listener)
         self.model.base_data_frame_model.add_event_listener("view_summary_event", self.summary_view_state_listener)

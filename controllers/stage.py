@@ -34,8 +34,10 @@ class StageController:
         self.frame.report_load_btn.config(command=lambda: self.handle_selected_stage(stage=TextEnum.LOAD))
         self.frame.report_end_btn.config(command=lambda: self.handle_selected_stage(stage=TextEnum.END))
 
+        # binds settings save_report_folder_path
         self.frame.save_dictionaries_btn.config(command=lambda: self.choose_folder(folder='save_report_folder_path'))
 
+        # binds settings data_folder_report_path
         self.frame.choose_folder_btn.config(command=lambda: self.choose_folder(folder='data_folder_report_path'))
 
         self.frame.back_btn.config(command=self.handle_back)
