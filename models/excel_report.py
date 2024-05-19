@@ -19,8 +19,10 @@ class ExcelReport(ObservableModel):
         self.file_name = file_name
         self.stage = stage
         self.load_workbook()
-        self.row_count_dataframe: pandas.DataFrame = None
+        self.merge_statistics_dataframe: pandas.DataFrame = None
+        self.percent_reconciliation_dataframe: pandas.DataFrame = None
         self.summary_dataframe: pandas.DataFrame = None
+        self.sample_dataframe: pandas.DataFrame = None
 
     def load_workbook(self):
         try:
@@ -241,7 +243,7 @@ class ExcelReport(ObservableModel):
             dataframe_2: pandas.DataFrame,
             merge_on_cols: [list],
             compare_cols: [list],
-            text_description: str = "",
+            text_description: str | None = "",
     ):
         merge_and_compare_dataframe = self.merge_and_compare(
             dataframe_1, dataframe_2, merge_on_cols, compare_cols
@@ -256,7 +258,10 @@ class ExcelReport(ObservableModel):
             merge_on=merge_on_cols,
             text_description=text_description,
         )
-        self.row_count_dataframe = row_count_dataframe
+        self.merge_statistics_dataframe = self.create_merge_statistics(merge_and_compare_dataframe)
+        self.percent_reconciliation_dataframe = self.create_reconciliation_statistics(merge_and_compare_dataframe)
+        self.sample_dataframe = self.create_sample_datafame(merge_and_compare_dataframe)
+
         return [row_count_dataframe, summary_dataframe, merge_and_compare_dataframe]
 
     def check_sum_count(
@@ -405,3 +410,62 @@ class ExcelReport(ObservableModel):
                 for cell in row:
                     cell.font = font_gray
 
+    def create_merge_statistics(self, dataframe_merge: pandas.DataFrame) -> pandas.DataFrame:
+        if self.stage == TextEnum.LOAD:
+            suffixes_tuple = ("src", "ext")
+            merge_tuple = ("wiersz tylko w SRC", "wiersz tylko w EXT")
+        elif self.stage == TextEnum.END:
+            suffixes_tuple = ("ext", "tgt")
+            merge_tuple = ("wiersz tylko w EXT", "wiersz tylko w TGT")
+        else:
+            suffixes_tuple = ("błąd", "błąd")
+            merge_tuple = ("błąd", "błąd")
+        total_rows = len(dataframe_merge)
+        only_1 = len(dataframe_merge[dataframe_merge["_merge"] == merge_tuple[0]])
+        only_2 = len(dataframe_merge[dataframe_merge["_merge"] == merge_tuple[1]])
+        both = len(dataframe_merge[dataframe_merge["_merge"] == " "])
+        success_rate = (both / total_rows) * 100 if total_rows > 0 else 0
+
+        stats = {
+            "Łączna liczba wierszy ": [total_rows],
+            f"Wiersze tylko w {suffixes_tuple[0]} ": [only_1],
+            f"Wiersze tylko w {suffixes_tuple[1]} ": [only_2],
+            "Wiersze w obu ": [both],
+            "Procent udanych połączeń (%) ": [success_rate],
+            f"Liczba wierszy w {suffixes_tuple[0]} ": [
+                len(dataframe_merge[dataframe_merge['_merge'] != merge_tuple[1]])],
+            f"Liczba wierszy w {suffixes_tuple[1]} ": [
+                len(dataframe_merge[dataframe_merge['_merge'] != merge_tuple[0]])]
+        }
+
+        return pandas.DataFrame(stats)
+
+    @staticmethod
+    def create_reconciliation_statistics(dataframe_merge: pandas.DataFrame) -> pandas.DataFrame:
+        total_rows = len(dataframe_merge)
+        reconciliation_columns = [col for col in dataframe_merge.columns if col.endswith("_")]
+        stats = {}
+
+        for column in reconciliation_columns:
+            true_count = dataframe_merge[column].sum()
+            false_count = total_rows - true_count
+            true_percentage = (true_count / total_rows) * 100 if total_rows > 0 else 0
+            false_percentage = 100 - true_percentage
+
+            stats[column] = {
+                'Kolumna': column,
+                'Łączna liczba wierszy': total_rows,
+                'Liczba True': true_count,
+                'Liczba False': false_count,
+                'Procent True (%)': true_percentage,
+                'Procent False (%)': false_percentage
+            }
+
+        return pandas.DataFrame(stats).transpose()
+
+    @staticmethod
+    def create_sample_datafame(self, dataframe: pandas.DataFrame):
+        if len(dataframe) > 100:
+            return dataframe.head(100)
+        else:
+            return dataframe

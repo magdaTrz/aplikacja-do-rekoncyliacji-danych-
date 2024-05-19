@@ -24,7 +24,9 @@ class OsobyInstytucje(ReportModel):
         self.dataframe_ext: pandas.DataFrame | None = None
         self.dataframe_tgt: pandas.DataFrame | None = None
         self.summary_dataframe: pandas.DataFrame | None = None
-        self.row_count_dataframe: pandas.DataFrame | None = None
+        self.merge_statistics_dataframe: pandas.DataFrame | None = None
+        self.percent_reconciliation_dataframe: pandas.DataFrame | None = None
+        self.sample_dataframe: pandas.DataFrame | None = None
 
     def _carry_operations(self) -> bool:
         print(f'OsobyInstytucje: _carry_operations(stage={self.stage})')
@@ -116,7 +118,9 @@ class OsobyInstytucje(ReportModel):
                 compare_cols=["typ", "nazwa1", "nazwa2", "data"],
                 text_description="")
             self.summary_dataframe = excel_workbook.summary_dataframe
-            self.row_count_dataframe = excel_workbook.row_count_dataframe
+            self.merge_statistics_dataframe = excel_workbook.merge_statistics_dataframe
+            self.percent_reconciliation_dataframe = excel_workbook.percent_reconciliation_dataframe
+            self.sample_dataframe = excel_workbook.sample_dataframe
         except Exception as e:
             print(f"OsobyInstytucje(): create_report  Error tworzenia raportu : {e}")
             return TextEnum.CREATE_ERROR
@@ -126,5 +130,4 @@ class OsobyInstytucje(ReportModel):
         except Exception as e:
             print(f"OsobyInstytucje(): create_report  Error zapisywania raportu : {e}")
             return TextEnum.SAVE_ERROR
-
         return True

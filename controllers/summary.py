@@ -23,6 +23,7 @@ class SummaryController:
 
     def _bind(self) -> None:
         self.frame.back_btn.config(command=self.handle_back)
+        # TODO: przycisk który bedzie otwierał folder z raportami
 
     def handle_back(self) -> None:
         self.view.switch('report')

@@ -71,7 +71,13 @@ class StartView(Frame):
                 self.window_instructions.destroy()
 
             instructions_text = """
-            Tutaj wpisz instrukcję, która ma się pojawić.
+            *** Instrukcja ***
+            Dodaj pliki źródłowe do folderu 'dane' - folder można zmienić używając przycisku w konsoli.
+            Dodaj słowniki do folderu 'słowniki' - folder można zmienić używając przyciski w konsoli.
+            Wygeneruj pliki pomocnicze. 
+            Wybierz na ekranie odpowiedni etap. 
+            Wybierz przepływ do rekoncyliacji.
+            Obserwuj status na ekranie. 
             Możesz dostosować jej wygląd i zawartość do własnych potrzeb.
             """
             label_instructions = Label(self.window_instructions, text=instructions_text)

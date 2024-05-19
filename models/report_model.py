@@ -1,5 +1,5 @@
 import os
-from typing import TypedDict, Union, Any
+from typing import TypedDict, Union, Any, Dict
 
 from pandas import DataFrame
 from pandas.errors import ParserError
@@ -52,8 +52,11 @@ class BaseDataFrameModel(ObservableModel):
         self.password_report = ''
         self.migration_date = ''
         self.update_summary_is_clicked: bool = False
-        self.summary_dataframes_dataframe: pandas.DataFrame = \
+        self.summary_tech_info_dataframes: pandas.DataFrame = \
             pandas.DataFrame({'Raport': [], 'Plik Excel': [], 'Status': [], 'Czas wykonywania': []})
+        self.update_details_is_clicked = False
+        self.details_percent_reconciliation_info_dataframes: Dict[str, pandas.DataFrame] = {}
+        self.details_merge_info_dataframes: Dict[str, pandas.DataFrame] = {}
 
     def set_save_report_folder_path(self, path: str):
         print(f'MODEL: BaseDataFrameModel(): set_save_report_folder_path(): {path}')
@@ -67,14 +70,50 @@ class BaseDataFrameModel(ObservableModel):
         self.data_folder_report_path = path
         self.trigger_event('data_folder_report_path_changed')
 
-    def add_value_to_summary_dataframes_dict(self, new_row_data: pandas.DataFrame):
-        print(f'add_value_to_summary_dataframes_dict():')
-        self.summary_dataframes_dataframe = pandas.concat(
-            [self.summary_dataframes_dataframe, pandas.DataFrame([new_row_data])], ignore_index=True)
+    def add_value_summary_dataframes(self, new_row_data: pandas.DataFrame):
+        print(f'BaseDataFrameModel: add_value_summary_dataframes():')
+        self.summary_tech_info_dataframes = pandas.concat(
+            [self.summary_tech_info_dataframes, pandas.DataFrame([new_row_data])], ignore_index=True)
 
-    def get_all_summary_dataframes(self):
-        print(f'BaseDataFrameModel:get_all_summary_dataframes():')
-        return self.summary_dataframes_dataframe
+    def get_summary_tech_info_dataframes(self):
+        print(f'BaseDataFrameModel: get_summary_tech_info_dataframes():')
+        return self.summary_tech_info_dataframes
+
+    def add_value_details_percent_reconciliation_dataframes(self, name:str, dataframe: pandas.DataFrame):
+        print(f'BaseDataFrameModel: add_value_details_percent_reconciliation_dataframes():')
+        self.details_percent_reconciliation_info_dataframes[name] = dataframe
+        
+    def get_details_percent_reconciliation_dataframes(self, name: str) -> pandas.DataFrame:
+        print(f'BaseDataFrameModel: get_details_percent_reconciliation_dataframes():')
+        if name in self.details_percent_reconciliation_info_dataframes:
+            return self.details_percent_reconciliation_info_dataframes[name]
+        else:
+            print(f"DataFrame with name '{name}' not found.")
+            return pandas.DataFrame({"Informacja": ["brak danych"]})
+
+    def add_value_details_merge_dataframes(self, name: str, dataframe: pandas.DataFrame):
+        print(f'BaseDataFrameModel:add_value_details_merge_dataframes():')
+        self.details_merge_info_dataframes[name] = dataframe
+
+    def get_details_merge_dataframes(self, name:str) -> pandas.DataFrame:
+        print(f'BaseDataFrameModel:get_details_merge_dataframes():')
+        if name in self.details_merge_info_dataframes:
+            return self.details_merge_info_dataframes[name]
+        else:
+            print(f"DataFrame with name '{name}' not found.")
+            return pandas.DataFrame({"Informacja": ["brak danych"]})
+
+    def add_value_details_data_dataframes(self, name: str, dataframe: pandas.DataFrame):
+        print(f'BaseDataFrameModel:add_value_details_data_dataframes():')
+        self.details_merge_info_dataframes[name] = dataframe
+
+    def get_details_data_dataframes(self, name:str) -> pandas.DataFrame:
+        print(f'BaseDataFrameModel:get_details_data_dataframes():')
+        if name in self.details_merge_info_dataframes:
+            return self.details_merge_info_dataframes[name]
+        else:
+            print(f"DataFrame with name '{name}' not found.")
+            return pandas.DataFrame({"Informacja": ["brak danych"]})
 
     def set_password_to_report(self, password: str):
         print(f"set_password_to_report(): {password} ")
@@ -92,6 +131,10 @@ class BaseDataFrameModel(ObservableModel):
     def add_data_to_summary_view(self) -> None:
         self.update_summary_is_clicked = True
         self.trigger_event("view_summary_event")
+
+    def add_buttons_to_details(self) -> None:
+        self.update_details_is_clicked = True
+        self.trigger_event("view_details_event")
 
 
 class ReportModel(ObservableModel):

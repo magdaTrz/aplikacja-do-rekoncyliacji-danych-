@@ -8,6 +8,7 @@ from .flow_load import FlowLoadView
 from .flow_end import FlowEndView
 from .report import ReportView
 from .summary import SummaryView
+from .details import DetailsView
 
 
 class Frames(TypedDict):
@@ -17,6 +18,7 @@ class Frames(TypedDict):
     flow_end: FlowEndView
     report: ReportView
     summary: SummaryView
+    details: DetailsView
 
 
 class View:
@@ -30,6 +32,7 @@ class View:
         self._add_frame(FlowEndView, 'flow_end')
         self._add_frame(ReportView, 'report')
         self._add_frame(SummaryView, 'summary')
+        self._add_frame(DetailsView, 'details')
 
     def _add_frame(self, Frame, name: str) -> None:
         self.frames[name] = Frame(self.root)

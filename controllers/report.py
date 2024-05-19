@@ -26,7 +26,8 @@ class ReportController:
         """Binds controller functions with respective buttons in the view"""
         self.frame.back_btn.config(command=self.handle_back)
         self.frame.open_folder_btn.config(command=self.open_folder_with_reports)
-        self.frame.summary_btn.config(command=self.handle_view_the_summary)
+        self.frame.summary_btn.config(command=self.handle_view_summary)
+        self.frame.details_btn.config(command=self.handle_view_details)
 
     def handle_back(self) -> None:
         current_report = self.model.report_stage_flow_model.current_report
@@ -110,10 +111,15 @@ class ReportController:
             else:
                 return
 
-    def handle_view_the_summary(self):
+    def handle_view_summary(self):
         print("ReportController: view_the_summary()")
         self.model.base_data_frame_model.add_data_to_summary_view()
         self.view.switch('summary')
+
+    def handle_view_details(self):
+        print("ReportController: handle_view_details()")
+        self.model.base_data_frame_model.add_buttons_to_details()
+        self.view.switch('details')
 
     def perform_operations(self) -> None:
         stage: str = self.model.report_stage_flow_model.current_report['stage_str']
@@ -186,5 +192,10 @@ class ReportController:
 
         self.add_text_to_info_label(TextGenerator.report_lable_text())
         dataframes.create_report()
-        self.model.base_data_frame_model.add_value_to_summary_dataframes_dict(report_data)
-
+        self.model.base_data_frame_model.\
+            add_value_summary_dataframes(report_data)
+        self.model.base_data_frame_model.add_value_details_percent_reconciliation_dataframes(path_info['name'],
+                                                                dataframes.percent_reconciliation_dataframe)
+        self.model.base_data_frame_model.\
+            add_value_details_merge_dataframes(path_info['name'], dataframes.merge_statistics_dataframe)
+        print("")

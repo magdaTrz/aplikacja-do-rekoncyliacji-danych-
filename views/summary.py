@@ -41,7 +41,7 @@ class SummaryView(Frame):
         treescrollx.pack(side="bottom", fill="x")
         treescrolly.pack(side="right", fill="y")
 
-    def display_dataframe(self, dataframe):
+    def display_dataframe(self, dataframe: pandas.DataFrame) -> None:
         def clear_data():
             self.treeview_widget.delete(*self.treeview_widget.get_children())
             return None
@@ -58,7 +58,7 @@ class SummaryView(Frame):
                 self.treeview_widget.insert("", "end", values=row)
             return None
         else:
-            tkinter.messagebox.showerror("Informacja","Brak danych do wyświetlenia.")
+            tkinter.messagebox.showerror("Informacja", "Brak danych do wyświetlenia.")
             print(f'ERROR: Brak danych do wyświetlenia')
             return None
 

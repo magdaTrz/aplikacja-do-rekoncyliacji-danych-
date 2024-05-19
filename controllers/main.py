@@ -9,6 +9,7 @@ from .flow_load import FlowLoadController
 from .flow_end import FlowEndController
 from .report import ReportController
 from .summary import SummaryController
+from .details import DetailsController
 
 
 class Controller:
@@ -21,6 +22,7 @@ class Controller:
         self.flow_load_controller = FlowLoadController(model, view)
         self.report_controller = ReportController(model, view)
         self.summary_controller = SummaryController(model, view)
+        self.details_controller = DetailsController(model, view)
 
         self.model.report_stage_flow_model.add_event_listener("flow_changed", self.flow_state_listener)
         self.model.report_stage_flow_model.add_event_listener("view_to_report_changed", self.view_to_report_state_listener)
@@ -32,6 +34,7 @@ class Controller:
                                                             self.data_folder_report_path_state_listener)
         self.model.report_model.add_event_listener("report_has_completed_event", self.report_has_ended_state_listener)
         self.model.base_data_frame_model.add_event_listener("view_summary_event", self.summary_view_state_listener)
+        self.model.base_data_frame_model.add_event_listener("view_details_event", self.details_view_state_listener)
 
     def current_number_report_state_listener(self, data: BaseDataFrameModel) -> None:
         if data.current_number_report_is_changed:
@@ -71,8 +74,13 @@ class Controller:
     def summary_view_state_listener(self, data: BaseDataFrameModel) -> None:
         if data.update_summary_is_clicked:
             print(f'STATE LISTENER: summary_view_state_listener():')
-            dataframe = data.get_all_summary_dataframes()
+            dataframe = data.get_summary_tech_info_dataframes()
             self.summary_controller.display_dataframe(dataframe)
+
+    def details_view_state_listener(self, data: BaseDataFrameModel) -> None:
+        if data.update_details_is_clicked:
+            print(f'STATE LISTENER: details_view_state_listener():')
+            self.details_controller.create_buttons()
 
     def start(self) -> None:
         self.view.switch("start")

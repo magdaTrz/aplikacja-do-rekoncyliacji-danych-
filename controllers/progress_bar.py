@@ -3,7 +3,7 @@ class ProgresBarStatus:
 
     @classmethod
     def increase(cls):
-        new_value = cls.progressbar_var.get() + 10
+        new_value = cls.progressbar_var.get() + 1
         cls.progressbar_var.set(new_value)
 
     @classmethod
