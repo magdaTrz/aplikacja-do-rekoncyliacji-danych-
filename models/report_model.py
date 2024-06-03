@@ -45,11 +45,11 @@ class BaseDataFrameModel(ObservableModel):
         self.current_number_report = 1
         self.current_number_report_is_changed = False
         self.number_of_reports = 6
+        self.password_report: str | None = None
         self.data_folder_report_path = ''
         self.data_folder_report_path_is_changed = False
         self.save_report_folder_path = ''
         self.save_report_path_is_changed = False
-        self.password_report = ''
         self.migration_date = ''
         self.update_summary_is_clicked: bool = False
         self.summary_tech_info_dataframes: pandas.DataFrame = \
@@ -57,6 +57,12 @@ class BaseDataFrameModel(ObservableModel):
         self.update_details_is_clicked = False
         self.details_percent_reconciliation_info_dataframes: Dict[str, pandas.DataFrame] = {}
         self.details_merge_info_dataframes: Dict[str, pandas.DataFrame] = {}
+        self.details_data_info_dataframes: Dict[str, pandas.DataFrame] = {}
+
+    def set_password_to_report(self, password: str):
+        print(f"set_password_to_report(): {password} ")
+        self.password_report = password
+        self.trigger_event('password_changed')
 
     def set_save_report_folder_path(self, path: str):
         print(f'MODEL: BaseDataFrameModel(): set_save_report_folder_path(): {path}')
@@ -79,10 +85,10 @@ class BaseDataFrameModel(ObservableModel):
         print(f'BaseDataFrameModel: get_summary_tech_info_dataframes():')
         return self.summary_tech_info_dataframes
 
-    def add_value_details_percent_reconciliation_dataframes(self, name:str, dataframe: pandas.DataFrame):
+    def add_value_details_percent_reconciliation_dataframes(self, name: str, dataframe: pandas.DataFrame):
         print(f'BaseDataFrameModel: add_value_details_percent_reconciliation_dataframes():')
         self.details_percent_reconciliation_info_dataframes[name] = dataframe
-        
+
     def get_details_percent_reconciliation_dataframes(self, name: str) -> pandas.DataFrame:
         print(f'BaseDataFrameModel: get_details_percent_reconciliation_dataframes():')
         if name in self.details_percent_reconciliation_info_dataframes:
@@ -95,7 +101,7 @@ class BaseDataFrameModel(ObservableModel):
         print(f'BaseDataFrameModel:add_value_details_merge_dataframes():')
         self.details_merge_info_dataframes[name] = dataframe
 
-    def get_details_merge_dataframes(self, name:str) -> pandas.DataFrame:
+    def get_details_merge_dataframes(self, name: str) -> pandas.DataFrame:
         print(f'BaseDataFrameModel:get_details_merge_dataframes():')
         if name in self.details_merge_info_dataframes:
             return self.details_merge_info_dataframes[name]
@@ -105,19 +111,15 @@ class BaseDataFrameModel(ObservableModel):
 
     def add_value_details_data_dataframes(self, name: str, dataframe: pandas.DataFrame):
         print(f'BaseDataFrameModel:add_value_details_data_dataframes():')
-        self.details_merge_info_dataframes[name] = dataframe
+        self.details_data_info_dataframes[name] = dataframe
 
-    def get_details_data_dataframes(self, name:str) -> pandas.DataFrame:
+    def get_details_data_dataframes(self, name: str) -> pandas.DataFrame:
         print(f'BaseDataFrameModel:get_details_data_dataframes():')
-        if name in self.details_merge_info_dataframes:
-            return self.details_merge_info_dataframes[name]
+        if name in self.details_data_info_dataframes:
+            return self.details_data_info_dataframes[name]
         else:
             print(f"DataFrame with name '{name}' not found.")
             return pandas.DataFrame({"Informacja": ["brak danych"]})
-
-    def set_password_to_report(self, password: str):
-        print(f"set_password_to_report(): {password} ")
-        self.password_report = password
 
     def set_migration_date(self, date: str):
         print(f"set_migration_date(): {date}")
@@ -142,10 +144,15 @@ class ReportModel(ObservableModel):
         super().__init__()
         print(f"ReportModel(): init class")
         self.report_end_is_changed = False
+        self.password_report: str | None = None
 
     def update_view_report(self):
         self.report_end_is_changed = True
         self.trigger_event('report_has_completed_event')
+
+    def set_password_to_report(self, password: str):
+        print(f"set_password_to_report(): {password} ")
+        self.password_report = password
 
     @staticmethod
     def set_colum_names(col_names: dict[int, str], dataframe: pandas.DataFrame) -> pandas.DataFrame:
@@ -166,7 +173,7 @@ class ReportModel(ObservableModel):
             return pandas.DataFrame()
 
     @staticmethod
-    def delete_unmigrated_records(dataframe: pandas.DataFrame, column_name: str='numer') -> pandas.DataFrame:
+    def delete_unmigrated_records(dataframe: pandas.DataFrame, column_name: str = 'numer') -> pandas.DataFrame:
         path = os.path.join(os.getcwd(), '_logi')
         path_to_file = os.path.join(path, '_reko_plik_pomocniczy_niemigrowane_id.csv')
         unmigrated_dataframe = pandas.read_csv(path_to_file)

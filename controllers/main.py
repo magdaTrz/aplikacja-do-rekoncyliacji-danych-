@@ -35,6 +35,11 @@ class Controller:
         self.model.report_model.add_event_listener("report_has_completed_event", self.report_has_ended_state_listener)
         self.model.base_data_frame_model.add_event_listener("view_summary_event", self.summary_view_state_listener)
         self.model.base_data_frame_model.add_event_listener("view_details_event", self.details_view_state_listener)
+        self.model.base_data_frame_model.add_event_listener("password_changed", self.set_password_state_listener)
+
+    def set_password_state_listener(self, data: ReportModel) -> None:
+        password = self.model.base_data_frame_model.password_report
+        self.model.report_model.set_password_to_report(password)
 
     def current_number_report_state_listener(self, data: BaseDataFrameModel) -> None:
         if data.current_number_report_is_changed:

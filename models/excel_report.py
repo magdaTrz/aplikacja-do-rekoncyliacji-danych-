@@ -7,15 +7,17 @@ from openpyxl.styles import Font, PatternFill
 from openpyxl.worksheet.datavalidation import DataValidation
 from models.base import ObservableModel
 from text_variables import TextEnum
+import win32com.client as win32
 
 import pandas
 import time
 
 
 class ExcelReport(ObservableModel):
-    def __init__(self, file_name, stage):
+    def __init__(self, file_name, stage, password: str | None = None):
         super().__init__()
         self.workbook = None
+        self.password_report: str | None = password
         self.file_name = file_name
         self.stage = stage
         self.load_workbook()
@@ -29,6 +31,8 @@ class ExcelReport(ObservableModel):
             self.workbook = openpyxl.load_workbook(self.file_name)
         except (FileNotFoundError, BadZipFile):
             self.create_new_workbook()
+        if self.password_report is not None:
+            self.workbook.password = self.password_report
 
     def create_new_workbook(self):
         try:
@@ -357,6 +361,20 @@ class ExcelReport(ObservableModel):
         return [summ_df]
 
     @staticmethod
+    def add_password_to_excel(file_path: str,
+                              password: str):
+        try:
+            excel = win32.gencache.EnsureDispatch('Excel.Application')
+            workbook = excel.Workbooks.Open(file_path)
+            workbook.Password = password
+            workbook.Save()
+            workbook.Close()
+            excel.Quit()
+            print(f"Password successfully added to {file_path}")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+
+    @staticmethod
     def format_procentage(percentage: float):
         return "{:.3f}%".format(percentage)
 
@@ -427,18 +445,29 @@ class ExcelReport(ObservableModel):
         success_rate = (both / total_rows) * 100 if total_rows > 0 else 0
 
         stats = {
-            "Łączna liczba wierszy ": [total_rows],
-            f"Wiersze tylko w {suffixes_tuple[0]} ": [only_1],
-            f"Wiersze tylko w {suffixes_tuple[1]} ": [only_2],
-            "Wiersze w obu ": [both],
-            "Procent udanych połączeń (%) ": [success_rate],
-            f"Liczba wierszy w {suffixes_tuple[0]} ": [
-                len(dataframe_merge[dataframe_merge['_merge'] != merge_tuple[1]])],
-            f"Liczba wierszy w {suffixes_tuple[1]} ": [
-                len(dataframe_merge[dataframe_merge['_merge'] != merge_tuple[0]])]
+            "Index": [1, 2, 3, 4, 5, 6, 7],
+            "Opis zmiennej": [
+                "Wierszy",
+                f"Tylko w {suffixes_tuple[0]}",
+                f"Tylko w {suffixes_tuple[1]}",
+                "Wiersze w obu",
+                "Procent udanych połączeń (%)",
+                f"Liczba wierszy w {suffixes_tuple[0]}",
+                f"Liczba wierszy w {suffixes_tuple[1]}"
+            ],
+            "Wartość": [
+                int(total_rows),
+                int(only_1),
+                int(only_2),
+                both,
+                success_rate,
+                len(dataframe_merge[dataframe_merge['_merge'] != merge_tuple[1]]),
+                len(dataframe_merge[dataframe_merge['_merge'] != merge_tuple[0]])
+            ]
         }
-
-        return pandas.DataFrame(stats)
+        dataframe = pandas.DataFrame(stats)
+        dataframe = dataframe.set_index('Index')
+        return dataframe
 
     @staticmethod
     def create_reconciliation_statistics(dataframe_merge: pandas.DataFrame) -> pandas.DataFrame:
@@ -454,17 +483,17 @@ class ExcelReport(ObservableModel):
 
             stats[column] = {
                 'Kolumna': column,
-                'Łączna liczba wierszy': total_rows,
-                'Liczba True': true_count,
-                'Liczba False': false_count,
-                'Procent True (%)': true_percentage,
-                'Procent False (%)': false_percentage
+                'Liczba wierszy': int(total_rows),
+                'True': int(true_count),
+                'False': int(false_count),
+                'True (%)': round(true_percentage, 2),
+                'False (%)': round(false_percentage,2)
             }
 
         return pandas.DataFrame(stats).transpose()
 
     @staticmethod
-    def create_sample_datafame(self, dataframe: pandas.DataFrame):
+    def create_sample_datafame(dataframe: pandas.DataFrame):
         if len(dataframe) > 100:
             return dataframe.head(100)
         else:

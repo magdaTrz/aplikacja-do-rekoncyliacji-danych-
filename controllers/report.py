@@ -1,10 +1,7 @@
 import os
 import time
-import tkinter as tk
+import tkinter
 from typing import Dict
-
-import openpyxl
-import pandas
 
 from models.main import Model
 from views.main import View
@@ -30,10 +27,11 @@ class ReportController:
         self.frame.details_btn.config(command=self.handle_view_details)
 
     def handle_back(self) -> None:
-        current_report = self.model.report_stage_flow_model.current_report
-        if current_report:
-            current_report['stage_str'] = None
-            current_report['flow_str'] = None
+        flow_model = self.model.report_stage_flow_model
+        if flow_model.current_report:
+            flow_model.current_report['stage_str'] = None
+            flow_model.current_report['flow_str'] = None
+            flow_model.is_btn_clicked = False
         self.view.switch('stage')
 
     def handle_generate_report(self):
@@ -84,9 +82,9 @@ class ReportController:
             tags.append("important")
 
         if tags:
-            self.frame.info_label.insert(tk.END, f"{new_text}\n", tags)
+            self.frame.info_label.insert(tkinter.END, f"{new_text}\n", tags)
         else:
-            self.frame.info_label.insert(tk.END, f"{new_text}\n")
+            self.frame.info_label.insert(tkinter.END, f"{new_text}\n")
 
     def save_excel_report_is_succes_controller(self, dataframes):
         self.add_text_to_info_label("Przechodzę do zapisywania raportu.")
@@ -96,6 +94,7 @@ class ReportController:
             is_correct_saved = dataframes.create_report()
 
             if is_correct_saved:
+
                 self.add_text_to_info_label("Zapisano poprawnie.", important=True)
                 break
             elif is_correct_saved == TextEnum.SAVE_ERROR:
@@ -172,7 +171,8 @@ class ReportController:
             path_ext=path_info['ext'],
             data_folder_report_path=self.model.base_data_frame_model.data_folder_report_path,
             save_folder_report_path=self.model.base_data_frame_model.save_report_folder_path,
-            path_excel_file=path_info['excel']
+            path_excel_file=path_info['excel'],
+            password=self.model.base_data_frame_model.password_report,
         )
         self.add_text_to_info_label(TextGenerator.mapping_lable_text())
         success: bool = dataframes._carry_operations()
@@ -192,10 +192,10 @@ class ReportController:
 
         self.add_text_to_info_label(TextGenerator.report_lable_text())
         dataframes.create_report()
-        self.model.base_data_frame_model.\
-            add_value_summary_dataframes(report_data)
+        self.model.base_data_frame_model.add_value_summary_dataframes(report_data)
         self.model.base_data_frame_model.add_value_details_percent_reconciliation_dataframes(path_info['name'],
                                                                 dataframes.percent_reconciliation_dataframe)
-        self.model.base_data_frame_model.\
-            add_value_details_merge_dataframes(path_info['name'], dataframes.merge_statistics_dataframe)
-        print("")
+        self.model.base_data_frame_model.add_value_details_merge_dataframes(path_info['name'],
+                                                                            dataframes.merge_statistics_dataframe)
+        self.model.base_data_frame_model.add_value_details_data_dataframes(path_info['name'],
+                                                                            dataframes.sample_dataframe)

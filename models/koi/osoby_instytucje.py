@@ -10,7 +10,7 @@ from models.excel_report import ExcelReport
 
 class OsobyInstytucje(ReportModel):
     def __init__(self, stage: str, path_src=None, path_ext=None, path_tgt=None, data_folder_report_path='',
-                 save_folder_report_path='', path_excel_file='report.xlsx'):
+                 save_folder_report_path='', path_excel_file='report.xlsx', password:None=None):
         super().__init__()
         print('OsobyInstytucje: __init__')
         self.stage = stage
@@ -27,9 +27,10 @@ class OsobyInstytucje(ReportModel):
         self.merge_statistics_dataframe: pandas.DataFrame | None = None
         self.percent_reconciliation_dataframe: pandas.DataFrame | None = None
         self.sample_dataframe: pandas.DataFrame | None = None
+        self.password:str|None = password
 
     def _carry_operations(self) -> bool:
-        print(f'OsobyInstytucje: _carry_operations(stage={self.stage})')
+        print(f'OsobyInstytucje: _carry_operations({self.stage=})')
 
         if self.stage == TextEnum.LOAD:
             path = os.path.join(os.getcwd(), '_logi')
@@ -103,9 +104,11 @@ class OsobyInstytucje(ReportModel):
         return dataframe
 
     def create_report(self) -> TextEnum | bool:
-        print(f"OsobyInstytucje(): create_report({self.path_excel}  {self.save_folder_report_path})")
+        print(f"OsobyInstytucje(): create_report({self.path_excel}  {self.save_folder_report_path} )")
+
         try:
-            excel_workbook = ExcelReport(self.path_excel, self.stage)
+            path = os.path.join(self.save_folder_report_path, self.path_excel)
+            excel_workbook = ExcelReport(path, self.stage)
         except Exception as e:
             print(f"OsobyInstytucje(): create_report  Error tworzenia excela : {e}")
             return TextEnum.EXCEL_ERROR
@@ -130,4 +133,9 @@ class OsobyInstytucje(ReportModel):
         except Exception as e:
             print(f"OsobyInstytucje(): create_report  Error zapisywania raportu : {e}")
             return TextEnum.SAVE_ERROR
+        try:
+            excel_workbook.add_password_to_excel(path, self.password)
+        except Exception as e:
+            print(f"OiPassword(): add_password_to_excel  Error daodawania hasła do raportu : {e}")
+
         return True

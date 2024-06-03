@@ -10,7 +10,7 @@ from text_variables import TextEnum
 
 class OiPassword(ReportModel):
     def __init__(self, stage: str, path_src=None, path_ext=None, path_tgt=None, data_folder_report_path='',
-                 save_folder_report_path='', path_excel_file='report.xlsx'):
+                 save_folder_report_path='', path_excel_file='report.xlsx', password=None):
         super().__init__()
         self.stage = stage
         self.path_src = path_src
@@ -26,6 +26,7 @@ class OiPassword(ReportModel):
         self.merge_statistics_dataframe: pandas.DataFrame | None = None
         self.percent_reconciliation_dataframe: pandas.DataFrame | None = None
         self.sample_dataframe: pandas.DataFrame | None = None
+        self.password: None|str = password
 
     def _carry_operations(self) -> bool:
         print(f'OiPassword: _carry_operations(stage={self.stage})')
@@ -102,4 +103,9 @@ class OiPassword(ReportModel):
         except Exception as e:
             print(f"OiPassword(): create_report  Error zapisywania raportu : {e}")
             return TextEnum.SAVE_ERROR
+
+        try:
+            excel_workbook.add_password_to_excel(self.path_excel, self.password)
+        except Exception as e:
+            print(f"OiPassword(): add_password_to_excel  Error daodawania hasła do raportu : {e}")
         return True
