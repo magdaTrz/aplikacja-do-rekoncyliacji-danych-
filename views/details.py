@@ -13,11 +13,15 @@ class DetailsView(Frame):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        style_btn = ttk.Style()
+        style_btn.configure("Red.TButton", background="#9E3B28", foreground="#9E3B28")
+        style_btn.map("Red.TButton", background=[("pressed", "#9E3B28")], foreground=[("pressed", "#9E3B28")])
+
         style = ttk.Style()
-        style.configure("Red.TButton", background="red", foreground="red")
-        style.map("Red.TButton",
-                  background=[("pressed", "red")],
-                  foreground=[("pressed", "red")])
+        style.configure("Treeview", foreground="black", rowheight=25, font=("Courier New", 8))
+        # style heading
+        style.configure("Treeview.Heading", font=("Courier New", 8, 'bold'))
+        style.map("Treeview", background=[('selected', '#9E3B28')], foreground=[('selected', 'white')])
 
         # image background photo
         self.background_image = PhotoImage(file=paths.path_background_details)
@@ -39,6 +43,7 @@ class DetailsView(Frame):
         self.chart_icon = tk.PhotoImage(file=paths.path_chart_icon)
         self.group_icon = tk.PhotoImage(file=paths.path_group_icon)
         self.table_icon = tk.PhotoImage(file=paths.path_table_icon)
+        self.open_folder_icon = tk.PhotoImage(file=paths.path_open_folder_icon)
 
         # btn show true false statistic
         self.show_true_false_statistic_btn = ttk.Button(self, image=self.chart_icon, text='true_false')
@@ -65,6 +70,9 @@ class DetailsView(Frame):
         treescrollx.pack(side="bottom", fill="x")
         treescrolly.pack(side="right", fill="y")
 
+        self.open_file_btn = ttk.Button(self, text="    Otwórz cały raport", image=self.open_folder_icon,
+                                        compound="left")
+
         self.selected_btn = None
         self.selected_right_btn = None
         self.buttons = []
@@ -86,18 +94,20 @@ class DetailsView(Frame):
             y += button_height + button_spacing
 
     def display_dataframe(self, dataframe: pandas.DataFrame) -> None:
-        def clear_data():
-            self.treeview_widget.delete(*self.treeview_widget.get_children())
-            return None
-
         print(f'DetailsView: display_dataframe({dataframe})')
         if not dataframe.empty:
-            clear_data()
+            self.clear_data()
             self.treeview_widget["column"] = list(dataframe.columns)
             self.treeview_widget["show"] = "headings"
 
             for column in self.treeview_widget["columns"]:
                 self.treeview_widget.heading(column, text=column)
+                max_len = max(dataframe[column].astype(str).apply(len).max(), len(column))
+                width = max_len * 10
+                max_width = 500
+                if width > max_width:
+                    width = max_width
+                self.treeview_widget.column(column, width=width)
             df_rows = dataframe.to_numpy().tolist()
             for row in df_rows:
                 self.treeview_widget.insert("", "end", values=row)
@@ -107,7 +117,11 @@ class DetailsView(Frame):
             print(f'ERROR: Brak danych do wyświetlenia')
             return None
 
-    def set_btn_name(self, name :str) -> None:
+    def clear_data(self):
+        self.treeview_widget.delete(*self.treeview_widget.get_children())
+        return None
+
+    def set_btn_name(self, name: str) -> None:
         print(f'DetailsView: set_btn_name({name})')
         self.selected_btn = name
         self.reset_button_styles()
@@ -118,6 +132,8 @@ class DetailsView(Frame):
             button.config(style='TButton')  # Reset to default style
         for button in self.right_buttons:
             button.config(style='TButton')
+        self.open_file_btn.place_forget()
+        self.clear_data()
 
     def highlight_selected_button(self, name):
         for button in self.buttons:
@@ -133,9 +149,10 @@ class DetailsView(Frame):
     def reset_right_button_styles(self):
         for button in self.right_buttons:
             button.config(style='TButton')  # Reset to default style
+        self.open_file_btn.place_forget()
+        self.clear_data()
 
     def highlight_selected_right_button(self, button_type):
         for button in self.right_buttons:
             if button.cget('text').lower() == button_type:
                 button.config(style='Red.TButton')  # Set selected style
-

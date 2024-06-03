@@ -41,12 +41,12 @@ class StartView(Frame):
         photo_acn = ImageTk.PhotoImage(Image.open(paths.path_acn))
         photo_sbm = ImageTk.PhotoImage(Image.open(paths.path_sbm))
 
-        self.label_acn = ttk.Label(self, image=photo_acn)
-        self.label_acn.image = photo_acn
-        self.label_sbm = ttk.Label(self, image=photo_sbm)
-        self.label_sbm.image = photo_sbm
-        self.label_acn.place(x=30, y=330, width=130, height=105)
-        self.label_sbm.place(x=170, y=330, width=130, height=105)
+        # self.label_acn = ttk.Label(self, image=photo_acn)
+        # self.label_acn.image = photo_acn
+        # self.label_sbm = ttk.Label(self, image=photo_sbm)
+        # self.label_sbm.image = photo_sbm
+        # self.label_acn.place(x=30, y=330, width=130, height=105)
+        # self.label_sbm.place(x=170, y=330, width=130, height=105)
 
         # btn help
         self.help_image = PhotoImage(file=paths.path_help_icon)
@@ -71,17 +71,20 @@ class StartView(Frame):
                 self.window_instructions.destroy()
 
             instructions_text = """
-            *** Instrukcja ***
-            Dodaj pliki źródłowe do folderu 'dane' - folder można zmienić używając przycisku w konsoli.
-            Dodaj słowniki do folderu 'słowniki' - folder można zmienić używając przyciski w konsoli.
-            Wygeneruj pliki pomocnicze. 
-            Wybierz na ekranie odpowiedni etap. 
-            Wybierz przepływ do rekoncyliacji.
-            Obserwuj status na ekranie. 
-            Możesz dostosować jej wygląd i zawartość do własnych potrzeb.
+               Instrukcja 
+            
+            
+            1. Dodaj pliki źródłowe do folderu 'dane' - folder można zmienić używając przycisku w konsoli.
+            2. Dodaj słowniki do folderu 'słowniki' - folder można zmienić używając przyciski w konsoli.
+            3. Wygeneruj pliki pomocnicze. 
+            4. Wybierz na ekranie odpowiedni etap wykonywanego raportu. 
+            5. Wybierz przepływ do rekoncyliacji.
+            6. Obserwuj status na ekranie.  
+            7. Ekran statusu poinformuje o wykonaniu raportu. 
+            8. Skorzustaj z zaimplementowanych statystyk.
             """
-            label_instructions = Label(self.window_instructions, text=instructions_text)
-            label_instructions.pack(padx=10, pady=10)
+            label_instructions = ttk.Label(self.window_instructions, text=instructions_text, anchor="w")
+            label_instructions.pack(padx=20, pady=20)
 
             self.window_instructions.protocol("WM_DELETE_WINDOW", on_close)
         else:

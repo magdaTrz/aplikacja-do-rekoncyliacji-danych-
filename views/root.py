@@ -32,4 +32,8 @@ class Root(Tk):
 
         style.configure("NoBackground.TLabel", background="systemTransparent")
 
+        style.configure("TButton", font=("Bahnschrift", 10))
+        style.map("TButton",
+                  foreground=[('active', 'red'), ('!active', 'black')])
 
+        style.configure("Custom.TButton", font=("Bahnschrift", 13))

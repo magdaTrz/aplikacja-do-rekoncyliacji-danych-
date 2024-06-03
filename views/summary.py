@@ -30,7 +30,7 @@ class SummaryView(Frame):
         self.back_btn.place(x=30, y=15)
 
         self.treeview_frame = tk.LabelFrame(self, text="Podsumowanie")
-        self.treeview_frame.place(x=70, y=75, height=280, width=570)
+        self.treeview_frame.place(x=15, y=79, height=282, width=690)
 
         self.treeview_widget = ttk.Treeview(self.treeview_frame)
         self.treeview_widget.place(relheight=1, relwidth=1)
