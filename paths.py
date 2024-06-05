@@ -40,7 +40,7 @@ path_loading = fr"{current_working_dir}\img\Dual Ring-2.4s-30px.gif"
 def get_timestamp():
     "Funkcja tworząca timestamp umieszczany w nazwie plików"
     now = datetime.now()
-    formatted_timestamp = now.strftime("%Y%m%d_%H_%M")
+    formatted_timestamp = now.strftime("%Y%m%d_%H")
     return formatted_timestamp
 
 
@@ -48,44 +48,112 @@ timestamp = get_timestamp()
 
 flow_paths = {
     'KOI_paths': [
-        {'name': 'osoby_instytucje', 'src': 'rfs_klienci_dodatkowe_src.txt', 'ext': 'rfs_out_osoby_instytucje_ext.csv',
-         'tgt': 'rfs_osoby_instytucje_tgt.csv', 'excel': f'PromakNext_RekomendacjaObszaru_KOI_1_{timestamp}.xlsx'},
-        {'name': 'oi_password', 'src': 'rfs_klienci_dodatkowe_src.txt', 'ext': 'rfs_out_oi_password_ext.csv',
-         'tgt': 'rfs_oi_password_tgt.csv', 'excel': f'PromakNext_RekomendacjaObszaru_KOI_2_{timestamp}.xlsx'},
-        {'name': 'oi_numb', 'src': 'rfs_oi_numb_src.txt', 'ext': 'rfs_out_oi_numb_ext.csv',
-         'tgt': 'rfs_oi_numb_tgt.csv', 'excel': f'PromakNext_RekomendacjaObszaru_KOI_2_{timestamp}.xlsx'},
-        {'name': 'oi_adresy', 'src': 'rfs_oi_adresy_src.txt', 'ext': 'rfs_out_oi_adresy_ext.csv',
-         'tgt': 'rfs_oi_adresy_tgt.csv', 'excel': f'PromakNext_RekomendacjaObszaru_KOI_2_{timestamp}.xlsx'},
-        {'name': 'oi_atryb', 'src': 'rfs_klienci_dodatkowe_src.txt', 'ext': 'rfs_out_oi_atryb_ext.csv',
-         'tgt': 'rfs_oi_atryb_tgt.csv', 'excel': f'PromakNext_RekomendacjaObszaru_KOI_2_{timestamp}.xlsx'},
-        {'name': 'oi_telecom', 'src': 'rfs_klienci_dodatkowe_src.txt', 'ext': 'rfs_out_oi_telecom_ext.csv',
-         'tgt': 'rfs_oi_telecom_tgt.csv', 'excel': f'PromakNext_RekomendacjaObszaru_KOI_3_{timestamp}.xlsx'},
-        {'name': 'oi_consents', 'src': 'rfs_oi_consents_src.txt', 'ext': 'rfs_out_oi_consents_ext.csv',
-         'tgt': 'rfs_oi_consents_tgt.csv', 'excel': f'PromakNext_RekomendacjaObszaru_KOI_3_{timestamp}.xlsx'}],
+        {
+            'name': 'osoby_instytucje',
+            'src': 'rfs_klienci_dodatkowe_src.txt',
+            'ext': 'rfs_out_osoby_instytucje_ext.csv',
+            'tgt': 'rfs_osoby_instytucje_tgt.csv',
+            'excel': f'Rekoncyliacja_RekomendacjaObszaru_KOI_1_{timestamp}.xlsx'
+        },
+        {
+            'name': 'oi_password',
+            'src': 'rfs_klienci_dodatkowe_src.txt',
+            'ext': 'rfs_out_oi_password_ext.csv',
+            'tgt': 'rfs_oi_password_tgt.csv',
+            'excel': f'Rekoncyliacja_RekomendacjaObszaru_KOI_1_{timestamp}.xlsx'
+        },
+        {
+            'name': 'oi_numb',
+            'src': 'rfs_oi_numb_src.txt',
+            'ext': 'rfs_out_oi_numb_ext.csv',
+            'tgt': 'rfs_oi_numb_tgt.csv',
+            'excel': f'Rekoncyliacja_RekomendacjaObszaru_KOI_2_{timestamp}.xlsx'
+        },
+        {
+            'name': 'oi_adresy',
+            'src': 'rfs_oi_adresy_src.txt',
+            'ext': 'rfs_out_oi_adresy_ext.csv',
+            'tgt': 'rfs_oi_adresy_tgt.csv',
+            'excel': f'Rekoncyliacja_RekomendacjaObszaru_KOI_2_{timestamp}.xlsx'
+        },
+        {
+            'name': 'oi_atryb',
+            'src': 'rfs_klienci_dodatkowe_src.txt',
+            'ext': 'rfs_out_oi_atryb_ext.csv',
+            'tgt': 'rfs_oi_atryb_tgt.csv',
+            'excel': f'Rekoncyliacja_RekomendacjaObszaru_KOI_3_{timestamp}.xlsx'
+        },
+        {
+            'name': 'oi_telecom',
+            'src': 'rfs_klienci_dodatkowe_src.txt',
+            'ext': 'rfs_out_oi_telecom_ext.csv',
+            'tgt': 'rfs_oi_telecom_tgt.csv',
+            'excel': f'Rekoncyliacja_RekomendacjaObszaru_KOI_3_{timestamp}.xlsx'
+        },
+        {
+            'name': 'oi_consents',
+            'src': 'rfs_oi_consents_src.txt',
+            'ext': 'rfs_out_oi_consents_ext.csv',
+            'tgt': 'rfs_oi_consents_tgt.csv',
+            'excel': f'Rekoncyliacja_RekomendacjaObszaru_KOI_4_{timestamp}.xlsx'
+        }],
 
     'UMO_paths': [
-        {'name': 'umowy', 'src': 'rfs_umowy_src.txt', 'ext': 'rfs_out_umowy_ext.csv',
-         'tgt': 'rfs_umowy_tgt.csv'},
-        {'name': 'umo_osoba', 'src': 'rfs_umo_osoba_src.txt', 'ext': 'rfs_out_umo_osoba_ext.csv',
-         'tgt': 'rfs_umo_osoba_tgt.csv'},
-        {'name': 'derywaty', 'src': 'rfs_derywaty_src.txt', 'ext': 'rfs_out_derywaty_ext.csv',
-         'tgt': 'rfs_derywaty_tgt.csv'},
-        {'name': 'rachunki_przelewy', 'src': 'rfs_rachunki_przelewy_src.txt',
-         'ext': 'rfs_out_rachunki_przelewy_ext.csv',
-         'tgt': 'rfs_rachunki_przelewy_tgt.csv'},
-        {'name': 'brokerage_agreement', 'src': 'rfs_brokerage_agreement_src.txt',
-         'ext': 'rfs_out_brokerage_agreement_ext.csv',
-         'tgt': 'rfs_brokerage_agreement_tgt.csv'}],
+        {
+            'name': 'umowy',
+            'src': 'rfs_umowy_src.txt',
+            'ext': 'rfs_out_umowy_ext.csv',
+            'tgt': 'rfs_umowy_tgt.csv',
+            'excel': f'Rekoncyliacja_RekomendacjaObszaru_UMO_1_{timestamp}.xlsx'},
+        {
+            'name': 'umo_osoba',
+            'src': 'rfs_umo_osoba_src.txt',
+            'ext': 'rfs_out_umo_osoba_ext.csv',
+            'tgt': 'rfs_umo_osoba_tgt.csv',
+            'excel': f'Rekoncyliacja_RekomendacjaObszaru_UMO_1_{timestamp}.xlsx'},
+        {
+            'name': 'derywaty',
+            'src': 'rfs_derywaty_src.txt',
+            'ext': 'rfs_out_derywaty_ext.csv',
+            'tgt': 'rfs_derywaty_tgt.csv',
+            'excel': f'Rekoncyliacja_RekomendacjaObszaru_UMO_2_{timestamp}.xlsx'},
+        {
+            'name': 'rachunki_przelewy',
+            'src': 'rfs_rachunki_przelewy_src.txt',
+            'ext': 'rfs_out_rachunki_przelewy_ext.csv',
+            'tgt': 'rfs_rachunki_przelewy_tgt.csv',
+            'excel': f'Rekoncyliacja_RekomendacjaObszaru_UMO_2_{timestamp}.xlsx'},
+        {
+            'name': 'brokerage_agreement',
+            'src': 'rfs_brokerage_agreement_src.txt',
+            'ext': 'rfs_out_brokerage_agreement_ext.csv',
+            'tgt': 'rfs_brokerage_agreement_tgt.csv',
+            'excel': f'Rekoncyliacja_RekomendacjaObszaru_UMO_3_{timestamp}.xlsx'}],
 
     'KSGPW_paths': [
-        {'name': 'salda_pw', 'src': 'rfs_salda_pw_src.txt', 'ext': 'rfs_out_salda_pw_ext.csv',
-         'tgt': 'rfs_salda_pw_tgt.csv'}],
+        {
+            'name': 'salda_pw',
+            'src': 'rfs_salda_pw_src.txt',
+            'ext': 'rfs_out_salda_pw_ext.csv',
+            'tgt': 'rfs_salda_pw_tgt.csv',
+            'excel': f'Rekoncyliacja_RekomendacjaObszaru_KSGPW_1_{timestamp}.xlsx'
+        }],
 
     'KSGFIN_paths': [
-        {'name': 'salda_fin', 'src': 'rfs_salda_fin_src.txt', 'ext': 'rfs_out_salda_fin_ext.csv',
-         'tgt': 'rfs_salda_fin_tgt_tgt.csv'}],
+        {
+            'name': 'salda_fin',
+            'src': 'rfs_salda_fin_src.txt',
+            'ext': 'rfs_out_salda_fin_ext.csv',
+            'tgt': 'rfs_salda_fin_tgt_tgt.csv',
+            'excel': f'Rekoncyliacja_RekomendacjaObszaru_KSGFIN_1_{timestamp}.xlsx'
+        }],
 
     'MATE_paths': [
-        {'name': 'mate', 'src': 'rfs_mate_src.txt', 'ext': 'rfs_out_mate_ext.csv',
-         'tgt': 'rfs_mate_tgt.csv'}],
+        {
+            'name': 'mate',
+            'src': 'rfs_mate_src.txt',
+            'ext': 'rfs_out_mate_ext.csv',
+            'tgt': 'rfs_mate_tgt.csv',
+            'excel': f'Rekoncyliacja_RekomendacjaObszaru_MATE_1_{timestamp}.xlsx'
+        }],
 }
