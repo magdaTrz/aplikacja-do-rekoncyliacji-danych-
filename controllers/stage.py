@@ -1,6 +1,7 @@
 import os
 import time
 
+import tkinter.messagebox
 import paths
 from models.main import Model
 from paths import path_support_files_folder, path_dict_folder
@@ -18,13 +19,15 @@ class StageController:
         self.model = model
         self.view = view
         self.frame = self.view.frames["stage"]
+        self.summary_frame = self.view.frames["summary"]
         self._bind()
 
     def _bind(self) -> None:
         """Binds controller functions with respective buttons in the view."""
         # binds for support files
         self.frame.generate_support_files_btn.config(command=lambda: self.start_process(folder='support_files'))
-        self.frame.support_file_filedialog_btn.config(command=lambda: self.choose_folder(folder='support_files_folder_path'))
+        self.frame.support_file_filedialog_btn.config(
+            command=lambda: self.choose_folder(folder='support_files_folder_path'))
 
         # binds for dicts
         self.frame.update_dictionaries_btn.config(command=lambda: self.start_process(folder='dict'))
@@ -39,6 +42,9 @@ class StageController:
 
         # binds settings data_folder_report_path
         self.frame.choose_folder_btn.config(command=lambda: self.choose_folder(folder='data_folder_report_path'))
+
+        # binds summary report
+        self.frame.summary_report_btn.config(command=self.handle_excel_summary)
 
         self.frame.back_btn.config(command=self.handle_back)
 
@@ -134,9 +140,11 @@ class StageController:
                       background=[("pressed", "green")],
                       foreground=[("pressed", "green")])
             self.frame.generate_support_files_btn.config(style="Green.TButton")
-            self.frame.show_popup_window(title='Zakończono', text=f"Poprawnie zakończono tworzenie plików pomocniczych.")
+            self.frame.show_popup_window(title='Zakończono',
+                                         text=f"Poprawnie zakończono tworzenie plików pomocniczych.")
         else:
-            self.frame.show_popup_window(title='Error', text=f"Nie znaleziono pliku potrzebnego do wygenerowania plików pomocniczych.")
+            self.frame.show_popup_window(title='Error',
+                                         text=f"Nie znaleziono pliku potrzebnego do wygenerowania plików pomocniczych.")
 
     def handle_dict_updates(self) -> None:
         self.model.dict_update.update_KSFIN_dict()
@@ -151,3 +159,18 @@ class StageController:
         self.frame.show_popup_window(title='Zakończono', text=f"Poprawnie zakończono aktualizację słowników.")
         return
 
+    def handle_excel_summary(self) -> None:
+        print('handle_excel_summary:')
+        file_path = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx *.xls")])
+        if file_path:
+            try:
+                data = self.model.base_data_frame_model.read_excel_sheet(file_path)
+                self.summary_frame.back_btn.config(command=self.handle_back_from_summary)
+                self.summary_frame.display_dataframe(data)
+                self.view.switch('summary')
+            except Exception as e:
+                tkinter.messagebox.showerror("Error", str(e))
+
+    def handle_back_from_summary(self) -> None:
+        """Return to previous screen function"""
+        self.view.switch('stage')

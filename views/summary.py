@@ -1,4 +1,4 @@
-import tkinter as tk
+import tkinter
 import tkinter.messagebox
 from tkinter import Frame, Label, Button, PhotoImage, ttk, scrolledtext
 
@@ -18,7 +18,7 @@ class SummaryView(Frame):
         resized_background_image = Image.open(paths.path_background_report)
         self.background_image = ImageTk.PhotoImage(resized_background_image)
 
-        self.background_label = tk.Label(self, image=self.background_image)
+        self.background_label = tkinter.Label(self, image=self.background_image)
         self.background_label.place(relwidth=1, relheight=1)
 
         # btn back
@@ -29,14 +29,14 @@ class SummaryView(Frame):
         self.back_btn = ttk.Button(self, image=self.back_icon)
         self.back_btn.place(x=30, y=15)
 
-        self.treeview_frame = tk.LabelFrame(self, text="Podsumowanie")
+        self.treeview_frame = tkinter.LabelFrame(self, text="Podsumowanie")
         self.treeview_frame.place(x=15, y=79, height=282, width=690)
 
         self.treeview_widget = ttk.Treeview(self.treeview_frame)
         self.treeview_widget.place(relheight=1, relwidth=1)
 
-        treescrolly = tk.Scrollbar(self.treeview_frame, orient="vertical", command=self.treeview_widget.yview)
-        treescrollx = tk.Scrollbar(self.treeview_frame, orient="horizontal", command=self.treeview_widget.xview)
+        treescrolly = tkinter.Scrollbar(self.treeview_frame, orient="vertical", command=self.treeview_widget.yview)
+        treescrollx = tkinter.Scrollbar(self.treeview_frame, orient="horizontal", command=self.treeview_widget.xview)
         self.treeview_widget.configure(xscrollcommand=treescrollx.set, yscrollcommand=treescrolly.set)
         treescrollx.pack(side="bottom", fill="x")
         treescrolly.pack(side="right", fill="y")
@@ -68,7 +68,7 @@ class SummaryView(Frame):
             nonlocal self
             self.popup_window.destroy()
 
-        self.popup_window = tk.Toplevel(self)
+        self.popup_window = tkinter.Toplevel(self)
         self.popup_window.title(title)
 
         # Ustawienie wielkości okna

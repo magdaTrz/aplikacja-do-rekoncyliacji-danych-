@@ -138,6 +138,36 @@ class BaseDataFrameModel(ObservableModel):
         self.update_details_is_clicked = True
         self.trigger_event("view_details_event")
 
+    @staticmethod
+    def read_excel_sheet(file_path: str) -> pandas.DataFrame:
+        print(f'BaseDataFrameModel: read_excel_sheet():')
+        excel_data = pandas.ExcelFile(file_path)
+        data_frames = []
+
+        for sheet_name in excel_data.sheet_names:
+            df = pandas.read_excel(file_path, sheet_name=sheet_name)
+
+            if '_merge' in df.columns:
+                merge_idx = df[df['_merge'].notna()].index[0]
+                df = df.iloc[:merge_idx-2, :]
+
+            new_columns = []
+            for col in df.columns:
+                if col.startswith('Unnamed'):
+                    new_columns.append('')
+                else:
+                    new_columns.append(col)
+            df.columns = new_columns
+
+            df = df.iloc[:, :4]
+
+            df['Sheet'] = sheet_name
+            data_frames.append(df.head(10))
+
+        combined_df = pandas.concat(data_frames, ignore_index=True)
+        combined_df = combined_df.fillna('')
+        return combined_df
+
 
 class ReportModel(ObservableModel):
     def __init__(self):
