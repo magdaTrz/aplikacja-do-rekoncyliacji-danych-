@@ -7,6 +7,7 @@ from views.main import View
 from paths import flow_paths
 from text_variables import TextEnum
 
+
 class FlowLoadController:
     def __init__(self, model: Model, view: View) -> None:
         self.model = model
@@ -24,7 +25,8 @@ class FlowLoadController:
         self.frame.MATE_btn.config(command=lambda: self.handle_selected_flow(flow=TextEnum.MATE))
 
         self.frame.data_folder_path_label.bind('<Button-1>', self.set_data_folder_path_controller())
-        self.frame.choose_dir_fromwhere_data_filedialog_btn.config(command=lambda: self.choose_folder(folder='data_folder_report_path'))
+        self.frame.choose_dir_fromwhere_data_filedialog_btn.config(
+            command=lambda: self.choose_folder(folder='data_folder_report_path'))
 
         self.frame.where_save_reports_label.bind('<Button-1>', self.set_save_reports_folder_path_controller())
         self.frame.choose_dir_to_save_filedialog_btn.config(
@@ -36,7 +38,54 @@ class FlowLoadController:
         self.frame.check_btn.config(command=self.switch_to_report)
         self.frame.xmark_btn.config(command=self.xmark_do_report)
 
-    def set_data_folder_path_controller(self, path='') -> None:
+    def handle_back(self) -> None:
+        current_report = self.model.report_stage_flow_model.current_report
+        print(f"FlowLoadController: handle_back(){current_report=} \
+              {self.model.base_data_frame_model.save_report_folder_path} \
+              {self.model.base_data_frame_model.data_folder_report_path}")
+        if current_report:
+            current_report['stage_str'] = None
+            current_report['flow_str'] = None
+        self.view.switch('stage')
+
+    def handle_selected_flow(self, flow: str) -> None:
+        report = {"stage_str": TextEnum.LOAD, "flow_str": flow}
+        self.model.report_stage_flow_model.report_save(report)
+        for child in self.frame.winfo_children():
+            if child.winfo_class() == "Button":
+                child.config(fg_color="black")
+        name_btn = str(flow) + '_btn'
+        if hasattr(self.frame, name_btn):
+            style = ttk.Style()
+            style.configure("Red.TButton", background="red", foreground="red")
+            style.map("Red.TButton",
+                      background=[("pressed", "red")],
+                      foreground=[("pressed", "red")])
+            getattr(self.frame, name_btn).config(style="Red.TButton")
+        else:
+            self.add_text_to_info_label('Naciśnięto niepoprawny przycisk.')
+
+    def update_view(self):
+        current_report = self.model.report_stage_flow_model.current_report
+        print(f'FlowLoadController: update_view() {current_report=}')
+        if current_report:
+            stage = current_report["stage_str"]
+            flow = current_report["flow_str"]
+
+            self.add_text_to_info_label(f'Sprawdzam czy dla raportu GoForLoad {flow} są wszystkie potrzebne pliki.')
+            missing_files = self.check_folder_for_files(flow_paths.get(str(flow) + '_paths', []))
+            if missing_files is None:
+                self.add_text_to_info_label('Wszytkie potrzebne pliki znajdują się w folderze.')
+                self.frame.start_btn.place(x=390, y=430, width=165, height=40)
+            else:
+                self.add_text_to_info_label(f'Brak następujących plików w folderze: {missing_files}')
+                self.add_text_to_info_label(f'Czy chcesz kontynuować \nbez tych plików?')
+                self.frame.check_btn.place(x=330, y=430, width=35, height=35)
+                self.frame.xmark_btn.place(x=375, y=430, width=35, height=35)
+        else:
+            print(f"ERROR: 'FlowLoadController: update_view() {current_report=}'")
+
+    def set_data_folder_path_controller(self, path: str = '') -> None:
         print(f'set_data_folder_path_controller(): {path}')
         if path != '':
             self.model.base_data_frame_model.set_data_folder_path(path)
@@ -73,52 +122,6 @@ class FlowLoadController:
     def data_folder_report_path_update_view(self):
         path = self.model.base_data_frame_model.data_folder_report_path
         self.frame.data_folder_path_label.config(text=f'{path}')
-
-    def handle_back(self) -> None:
-        current_report = self.model.report_stage_flow_model.current_report
-        print(f"FlowLoadController: handle_back(){current_report=} \
-              {self.model.base_data_frame_model.save_report_folder_path} \
-              {self.model.base_data_frame_model.data_folder_report_path}")
-        if current_report:
-            current_report['stage_str'] = None
-            current_report['flow_str'] = None
-        self.view.switch('stage')
-
-    def handle_selected_flow(self, flow: str) -> None:
-        report = {"stage_str": TextEnum.LOAD, "flow_str": flow}
-        self.model.report_stage_flow_model.report_save(report)
-        for child in self.frame.winfo_children():
-            if child.winfo_class() == "Button":
-                child.config(fg_color="black")
-        name_btn = str(flow) + '_btn'
-        if hasattr(self.frame, name_btn):
-            style = ttk.Style()
-            style.configure("Red.TButton", background="red", foreground="red")
-            style.map("Red.TButton",
-                      background=[("pressed", "red")],
-                      foreground=[("pressed", "red")])
-            getattr(self.frame, name_btn).config(style="Red.TButton")
-        else:
-            self.add_text_to_info_label('Naciśnięto niepoprawny przycisk.')
-
-    def update_view(self):
-        current_report = self.model.report_stage_flow_model.current_report
-        if current_report:
-            stage = current_report["stage_str"]
-            flow = current_report["flow_str"]
-
-            self.add_text_to_info_label(f'Sprawdzam czy dla raportu GoForLoad {flow} są wszystkie potrzebne pliki.')
-            missing_files = self.check_folder_for_files(flow_paths.get(str(flow) + '_paths', []))
-            if missing_files is None:
-                self.add_text_to_info_label('Wszytkie potrzebne pliki znajdują się w folderze.')
-                self.frame.start_btn.place(x=390, y=430, width=165, height=40)
-            else:
-                self.add_text_to_info_label(f'Brak następujących plików w folderze: {missing_files}')
-                self.add_text_to_info_label(f'Czy chcesz kontynuować \nbez tych plików?')
-                self.frame.check_btn.place(x=330, y=430, width=35, height=35)
-                self.frame.xmark_btn.place(x=375, y=430, width=35, height=35)
-        else:
-            print(f"ERROR: 'FlowLoadController: update_view() {current_report=}'")
 
     def choose_folder(self, folder: str) -> None:
         print(f'FlowLoadController: choose_folder( )')

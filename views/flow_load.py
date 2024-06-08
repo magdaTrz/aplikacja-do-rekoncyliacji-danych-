@@ -84,8 +84,7 @@ class FlowLoadView(Frame):
             button.place(x=60, y=data["y"], width=165, height=30)
 
         # btn reconcile
-        self.start_btn = ttk.Button(self, text="  Rekoncyliuj ", image=self.gear_icon,
-                                    compound="left")
+        self.start_btn = ttk.Button(self, text="  Rekoncyliuj ", image=self.gear_icon, compound="left")
 
         # insurance yes/no
         self.check_icon = tk.PhotoImage(file=paths.path_check_icon)
@@ -112,14 +111,12 @@ class FlowLoadView(Frame):
             self.window_password = tk.Toplevel(self)
             self.window_password.title("Ustaw hasło na raportach")
 
-            # Ustawienie wielkości okna
             width = 400
             height = 250
             x = (self.winfo_screenwidth() - width) // 2
             y = (self.winfo_screenheight() - height) // 2
             self.window_password.geometry('{}x{}+{}+{}'.format(width, height, x, y))
 
-            # Ustawienie okna na środku okna rodzica
             self.update_idletasks()
             window_password_x = self.winfo_rootx() + (self.winfo_width() - width) // 2
             window_password_y = self.winfo_rooty() + (self.winfo_height() - height) // 2
@@ -161,14 +158,12 @@ class FlowLoadView(Frame):
             self.window_calendar = tk.Toplevel(self)
             self.window_calendar.title("Ustaw datę migracji")
 
-            # Ustawienie wielkości okna
             width = 500
             height = 480
             x = (self.winfo_screenwidth() - width) // 2
             y = (self.winfo_screenheight() - height) // 2
             self.window_calendar.geometry('{}x{}+{}+{}'.format(width, height, x, y))
 
-            # Ustawienie okna na środku okna rodzica
             self.update_idletasks()
             window_calendar_x = self.winfo_rootx() + (self.winfo_width() - width) // 2
             window_calendar_y = self.winfo_rooty() + (self.winfo_height() - height) // 2
