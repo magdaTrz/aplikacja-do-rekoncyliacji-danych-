@@ -68,14 +68,17 @@ class DetailsController:
         self.frame.open_file_btn.place(x=50, y=417, width=190)
 
     def open_excel_file(self):
+        file_name = self.get_excel_path()
         try:
             path = self.model.base_data_frame_model.save_report_folder_path
             file_path = os.path.join(path, file_name)
             os.startfile(file_path)
         except FileNotFoundError:
             print(f"Plik '{file_name}' nie został znaleziony.")
+            tk.messagebox.showerror("Info", "Plik '{file_name}' nie został znaleziony.")
         except Exception as e:
             print(f"Wystąpił błąd podczas otwierania pliku: {e}")
+            tk.messagebox.showerror("Info", "Wystąpił błąd podczas otwierania pliku.")
 
     def get_excel_path(self) -> str | None:
         stage: str = self.model.report_stage_flow_model.current_report['stage_str']
@@ -84,5 +87,13 @@ class DetailsController:
         if f'{flow}_paths' in flow_paths:
             for item in flow_paths[f'{flow}_paths']:
                 if item['name'] == name:
-                    return item.get('excel')
+                    return self.modify_filename(item.get('excel'), stage)
         return None
+
+    @staticmethod
+    def modify_filename(filename: str, stage: str):
+        if stage == TextEnum.LOAD:
+            filename = filename.replace(".xlsx", "_Go4Load.xlsx")
+        elif stage == TextEnum.END:
+            filename = filename.replace(".xlsx", "_Go4EndDay.xlsx")
+        return filename

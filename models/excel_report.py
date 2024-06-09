@@ -13,6 +13,8 @@ from pydispatch import dispatcher
 import pandas
 import time
 
+UPDATE_TEXT_SIGNAL = 'update_text'
+
 
 class ExcelReport(ObservableModel):
     def __init__(self, file_name, stage, password: str | None = None):
@@ -51,6 +53,7 @@ class ExcelReport(ObservableModel):
 
     def merge_and_compare(self, dataframe_1: pandas.DataFrame,
                           dataframe_2: pandas.DataFrame, on_cols: list, compare_cols: list, round_cols: None = None):
+        dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Tworzę ramkę danych dla raportu field to field", head='info')
         if self.stage == TextEnum.LOAD:
             suffixes_tuple = ("_src", "_ext")
             _merge_mapping_dict = {
@@ -154,10 +157,10 @@ class ExcelReport(ObservableModel):
     ) -> pandas.DataFrame:
         """A function that creates a dataframe with information about the number of records and description.
         "Liczba rekordów w xyz:" """
-        if stage == "load":
+        if stage == TextEnum.LOAD:
             title1 = "Liczba rekordów w SRC: "
             title2 = "Liczba rekordów w EXT: "
-        elif stage == "end":
+        elif stage == TextEnum.END:
             title1 = "Liczba rekordów w EXT: "
             title2 = "Liczba rekordów w TGT: "
         else:
@@ -183,6 +186,9 @@ class ExcelReport(ObservableModel):
             merge_on: list,
             save_to_active_workbook=False,
     ):
+        dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Zapisuję dane do arkusza Excel",
+                        head='info')
+
         def get_last_filled_row(worksheet):
             for row in worksheet.iter_rows(max_row=worksheet.max_row, min_row=1):
                 for cell in row:
@@ -310,6 +316,9 @@ class ExcelReport(ObservableModel):
             column_to_counts: str,
             text_description="",
     ):
+        dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Tworzę ramkę danych dla raportu check sum",
+                        head='info')
+
         if self.stage == "load":
             suffixes_tuple = ("_src", "_ext")
         elif self.stage == "end":
@@ -365,6 +374,8 @@ class ExcelReport(ObservableModel):
     def add_password_to_excel(file_path: str,
                               password: str):
         try:
+            dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Nadaję hasło na raport rekoncyliacji",
+                            head='info')
             excel = win32.gencache.EnsureDispatch('Excel.Application')
             workbook = excel.Workbooks.Open(file_path)
             workbook.Password = password

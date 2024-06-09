@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import Frame, Label, Button, PhotoImage, ttk, scrolledtext
+from tkinter import Frame, PhotoImage, ttk, scrolledtext
 from PIL import Image, ImageTk
 from tkcalendar import Calendar
 from text_variables import TextEnum

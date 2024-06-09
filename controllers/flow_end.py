@@ -38,6 +38,7 @@ class FlowEndController:
         self.frame.xmark_btn.config(command=self.xmark_do_report)
 
     def handle_back(self) -> None:
+        self.update_to_clear_view()
         current_report = self.model.report_stage_flow_model.current_report
         print(f"FlowEndController: handle_back(){current_report=} \
                {self.model.base_data_frame_model.save_report_folder_path} \
@@ -47,7 +48,7 @@ class FlowEndController:
             current_report['flow_str'] = None
         self.view.switch('stage')
 
-    def handle_selected_flow(self, flow: str) -> None:
+    def handle_selected_flow(self, flow: TextEnum) -> None:
         print(f'FlowEndController: handle_selected_flow()')
         report = {"stage_str": TextEnum.END, "flow_str": flow}
         self.model.report_stage_flow_model.report_save(report)
@@ -69,7 +70,6 @@ class FlowEndController:
         current_report = self.model.report_stage_flow_model.current_report
         print(f'FlowEndController: update_view() {current_report=}')
         if current_report:
-            stage = current_report["stage_str"]
             flow = current_report["flow_str"]
 
             self.add_text_to_info_label(f'Sprawdzam czy dla raportu GoForLoad {flow} są wszystkie potrzebne pliki.')
@@ -85,6 +85,28 @@ class FlowEndController:
         else:
             print(f"ERROR: 'FlowEndController: update_view() {current_report=}'")
 
+    def update_to_clear_view(self):
+        current_report = self.model.report_stage_flow_model.current_report
+        self.frame.info_label.delete('1.0', tk.END)
+        self.add_text_to_info_label(f'Wybierz dla którego przepływu chcecsz wykonać raport Go4EndOfDay.')
+        self.frame.check_btn.place_forget()
+        self.frame.xmark_btn.place_forget()
+
+        for child in self.frame.winfo_children():
+            if child.winfo_class() == "Button":
+                child.config(bg="SystemButtonFace", activebackground="SystemButtonFace", fg='green',
+                             activeforeground="blue", highlightbackground="SystemButtonFace",
+                             highlightcolor="SystemButtonFace")
+
+        name_btn = str(current_report['flow_str']) + '_btn'
+        if hasattr(self.frame, name_btn):
+            style = ttk.Style()
+            style.configure("Black.TButton", background="white", foreground="black")
+            style.map("Black.TButton",
+                      background=[("pressed", "orange")],
+                      foreground=[("pressed", "purple")])
+            getattr(self.frame, name_btn).config(style="Black.TButton")
+
     def set_data_folder_path_controller(self, path: str = '') -> None:
         print(f'FlowEndController: set_data_folder_path_controller(): {path}')
         if path != '':
@@ -96,11 +118,10 @@ class FlowEndController:
             self.frame.data_folder_path_label.config(text=f'{path}')
         else:
             path = self.model.base_data_frame_model.data_folder_report_path
-            # self.model.base_data_frame_model.set_data_folder_path(path)
             self.frame.data_folder_path_label.config(text='')
             self.frame.data_folder_path_label.config(text=f'{path}')
 
-    def set_save_reports_folder_path_controller(self, path='') -> None:
+    def set_save_reports_folder_path_controller(self, path:str = '') -> None:
         print(f'FlowEndController: set_save_reports_folder_path_controller(): {path}')
         if path != '':
             self.model.base_data_frame_model.set_save_report_folder_path(path)
@@ -113,7 +134,6 @@ class FlowEndController:
             path = self.model.base_data_frame_model.save_report_folder_path
             self.frame.where_save_reports_label.config(text='')
             self.frame.where_save_reports_label.config(text=f'{path}')
-            self.frame.update_idletasks()
 
     def save_report_folder_path_update_view(self):
         path = self.model.base_data_frame_model.save_report_folder_path

@@ -150,7 +150,7 @@ class BaseDataFrameModel(ObservableModel):
 
             if '_merge' in df.columns:
                 merge_idx = df[df['_merge'].notna()].index[0]
-                df = df.iloc[:merge_idx-2, :]
+                df = df.iloc[:merge_idx - 2, :]
 
             new_columns = []
             for col in df.columns:
@@ -190,7 +190,9 @@ class ReportModel(ObservableModel):
         print('ReportModel: set_colum_names()')
         try:
             ProgresBarStatus.increase()
-            if dataframe is not None:
+            if dataframe.empty:
+                print('ReportModel: set_colum_names(): ERROR: Dataframe is empty')
+            elif dataframe is not None:
                 dataframe = dataframe.rename(columns=col_names)
                 ProgresBarStatus.increase()
                 return dataframe
@@ -264,3 +266,11 @@ class ReportModel(ObservableModel):
                             message=f"Błąd inicjalizowania pliku, nie znaleziono pliku w folderze: {path_to_file}",
                             head='fail')
             return pandas.DataFrame
+
+    @staticmethod
+    def modify_filename(filename, stage):
+        if stage == TextEnum.LOAD:
+            filename = filename.replace(".xlsx", "_Go4Load.xlsx")
+        elif stage == TextEnum.END:
+            filename = filename.replace(".xlsx", "_Go4EndDay.xlsx")
+        return filename

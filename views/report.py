@@ -68,7 +68,6 @@ class ReportView(Frame):
 
     def append_text(self, message: str, head: str) -> None:
         def get_timestamp():
-            "Funkcja tworząca timestamp umieszczany w nazwie plików"
             now = datetime.now()
             formatted_timestamp = now.strftime("%H:%M:%S")
             return formatted_timestamp

@@ -25,7 +25,8 @@ class Controller:
         self.details_controller = DetailsController(model, view)
 
         self.model.report_stage_flow_model.add_event_listener("flow_changed", self.flow_state_listener)
-        self.model.report_stage_flow_model.add_event_listener("view_to_report_changed", self.view_to_report_state_listener)
+        self.model.report_stage_flow_model.add_event_listener("view_to_report_changed",
+                                                              self.view_to_report_state_listener)
         self.model.base_data_frame_model.add_event_listener("current_number_report_changed",
                                                             self.current_number_report_state_listener)
         self.model.base_data_frame_model.add_event_listener("save_report_path_changed",

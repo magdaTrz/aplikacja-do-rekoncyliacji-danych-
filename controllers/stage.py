@@ -73,7 +73,7 @@ class StageController:
         self.model.report_stage_flow_model.report_clear()
         self.view.switch('start')
 
-    def handle_selected_stage(self, stage: str) -> None:
+    def handle_selected_stage(self, stage: TextEnum) -> None:
         print(f'StageController: handle_selected_stage({stage=})')
         if stage == TextEnum.LOAD:
             self.view.switch('flow_load')

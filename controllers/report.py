@@ -126,17 +126,14 @@ class ReportController:
     def perform_operations(self) -> None:
         stage: str = self.model.report_stage_flow_model.current_report['stage_str']
         flow: str = self.model.report_stage_flow_model.current_report['flow_str']
-        dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Ładowanie konfiguracji raportów {(str(flow))}", head='info')
+        dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Ładowanie konfiguracji raportów {(str(flow))}",
+                        head='info')
         i = 1
         for path_info in flow_paths.get(f'{flow}_paths', []):
             self.current_number_report_changed(i)
-            if stage == TextEnum.LOAD:
-                # wykonuje się tyle razy ile jest pod przepływów
-                dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=(TextGenerator.flow_lable_text()), head='info')
-                self.process_path_info(flow, stage, path_info)
-            if stage == TextEnum.END:
-                print(TextEnum.END)
-            i+=1
+            dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=(TextGenerator.flow_lable_text()), head='info')
+            self.process_path_info(flow, stage, path_info)
+            i += 1
         self.model.report_model.update_view_report()
         self.model.report_model.report_end_is_changed = False
 
@@ -162,7 +159,7 @@ class ReportController:
             }
         elif flow == TextEnum.UMO:
             self.model.base_data_frame_model.number_of_reports = 4
-            #...
+            # ...
 
         for name, ModelClass in model_classes.items():
             if path_info['name'] == name:
@@ -183,8 +180,8 @@ class ReportController:
         elif stage == TextEnum.END:
             dataframes = ModelClass(
                 stage=stage,
-                path_src=path_info['ext'],
-                path_ext=path_info['tgt'],
+                path_ext=path_info['ext'],
+                path_tgt=path_info['tgt'],
                 data_folder_report_path=self.model.base_data_frame_model.data_folder_report_path,
                 save_folder_report_path=self.model.base_data_frame_model.save_report_folder_path,
                 path_excel_file=path_info['excel'],
@@ -196,23 +193,40 @@ class ReportController:
 
         total_rows = (dataframes.dataframe_src.shape[0] if dataframes.dataframe_src is not None else 0) + \
                      (dataframes.dataframe_ext.shape[0] if dataframes.dataframe_ext is not None else 0)
-
-        report_data: Dict[str, str] = {
-            "Raport": path_info['name'],
-            'Plik Excel': path_info['excel'],
-            'Status': 'Sukces' if success else 'Błąd zapisu',
-            'Czas wykonywania': f'{time.time() - start_time:.2f} sec' if success else '-- sec',
-            'Liczba wierszy (dataframe_src)': f"{dataframes.dataframe_src.shape[0]} wierszy" if dataframes.dataframe_src is not None else "Brak danych",
-            'Liczba wierszy (dataframe_ext)': f"{dataframes.dataframe_ext.shape[0]} wierszy" if dataframes.dataframe_ext is not None else "Brak danych",
-            'Suma wierszy (łącznie z obu dataframe)': f"{total_rows} wierszy"
-        }
+        if stage == TextEnum.LOAD:
+            report_data: Dict[str, str] = {
+                "Raport": path_info['name'],
+                'Plik Excel': path_info['excel'],
+                'Status': 'Sukces' if success else 'Błąd zapisu',
+                'Czas wykonywania': f'{time.time() - start_time:.2f} sec' if success else '-- sec',
+                'Liczba wierszy (dataframe_src)': f"{dataframes.dataframe_src.shape[0]} wierszy"
+                if dataframes.dataframe_src is not None else "Brak danych",
+                'Liczba wierszy (dataframe_ext)': f"{dataframes.dataframe_ext.shape[0]} wierszy"
+                if dataframes.dataframe_ext is not None else "Brak danych",
+                'Suma wierszy (łącznie z obu dataframe)': f"{total_rows} wierszy"
+            }
+        elif stage == TextEnum.END:
+            report_data: Dict[str, str] = {
+                "Raport": path_info['name'],
+                'Plik Excel': path_info['excel'],
+                'Status': 'Sukces' if success else 'Błąd zapisu',
+                'Czas wykonywania': f'{time.time() - start_time:.2f} sec' if success else '-- sec',
+                'Liczba wierszy (dataframe_ext)':
+                    f"{dataframes.dataframe_ext.shape[0]} wierszy"
+                    if dataframes.dataframe_ext is not None else "Brak danych",
+                'Liczba wierszy (dataframe_tgt)':
+                    f"{dataframes.dataframe_tgt.shape[0]} wierszy"
+                    if dataframes.dataframe_tgt is not None else "Brak danych",
+                'Suma wierszy (łącznie z obu dataframe)': f"{total_rows} wierszy"
+            }
 
         dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Tworzę raport Excel: {path_info['name']}", head='info')
         dataframes.create_report()
         self.model.base_data_frame_model.add_value_summary_dataframes(report_data)
-        self.model.base_data_frame_model.add_value_details_percent_reconciliation_dataframes(path_info['name'],
+        self.model.base_data_frame_model. \
+            add_value_details_percent_reconciliation_dataframes(path_info['name'],
                                                                 dataframes.percent_reconciliation_dataframe)
         self.model.base_data_frame_model.add_value_details_merge_dataframes(path_info['name'],
                                                                             dataframes.merge_statistics_dataframe)
         self.model.base_data_frame_model.add_value_details_data_dataframes(path_info['name'],
-                                                                            dataframes.sample_dataframe)
+                                                                           dataframes.sample_dataframe)
