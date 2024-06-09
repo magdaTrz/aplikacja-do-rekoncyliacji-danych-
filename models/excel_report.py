@@ -8,6 +8,7 @@ from openpyxl.worksheet.datavalidation import DataValidation
 from models.base import ObservableModel
 from text_variables import TextEnum
 import win32com.client as win32
+from pydispatch import dispatcher
 
 import pandas
 import time

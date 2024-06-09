@@ -13,6 +13,7 @@ from controllers.progress_bar import ProgresBarStatus
 
 UPDATE_TEXT_SIGNAL = 'update_text'
 
+
 class ReportController:
     def __init__(self, model: Model, view: View):
         print(f'ReportController: __init__()')

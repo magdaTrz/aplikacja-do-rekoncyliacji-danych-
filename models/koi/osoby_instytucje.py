@@ -10,7 +10,7 @@ from models.excel_report import ExcelReport
 
 class OsobyInstytucje(ReportModel):
     def __init__(self, stage: str, path_src=None, path_ext=None, path_tgt=None, data_folder_report_path='',
-                 save_folder_report_path='', path_excel_file='report.xlsx', password:None=None):
+                 save_folder_report_path='', path_excel_file='report.xlsx', password: None = None):
         super().__init__()
         print('OsobyInstytucje: __init__')
         self.stage = stage

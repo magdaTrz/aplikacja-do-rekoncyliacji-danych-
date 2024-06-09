@@ -4,7 +4,6 @@ import time
 import tkinter.messagebox
 import paths
 from models.main import Model
-from paths import path_support_files_folder, path_dict_folder
 from text_variables import TextEnum
 from views.main import View
 from tkinter import filedialog, ttk

@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import Frame, Label, Button, PhotoImage, ttk, scrolledtext
+from tkinter import Frame, Label, PhotoImage, ttk, scrolledtext
 from PIL import Image, ImageTk
 from datetime import datetime
 from pydispatch import dispatcher

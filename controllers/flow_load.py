@@ -48,7 +48,7 @@ class FlowLoadController:
             current_report['flow_str'] = None
         self.view.switch('stage')
 
-    def handle_selected_flow(self, flow: str) -> None:
+    def handle_selected_flow(self, flow: TextEnum) -> None:
         report = {"stage_str": TextEnum.LOAD, "flow_str": flow}
         self.model.report_stage_flow_model.report_save(report)
         for child in self.frame.winfo_children():

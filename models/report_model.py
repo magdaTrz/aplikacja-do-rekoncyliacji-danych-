@@ -1,7 +1,7 @@
 import os
 import pandas
 from typing import TypedDict, Union, Any, Dict
-
+from text_variables import TextEnum
 from pandas import DataFrame
 from pandas.errors import ParserError
 from pydispatch import dispatcher
@@ -68,13 +68,11 @@ class BaseDataFrameModel(ObservableModel):
         self.trigger_event('password_changed')
 
     def set_save_report_folder_path(self, path: str):
-        print(f'MODEL: BaseDataFrameModel(): set_save_report_folder_path(): {path}')
         self.save_report_path_is_changed = True
         self.save_report_folder_path = path
         self.trigger_event('save_report_path_changed')
 
     def set_data_folder_path(self, path: str):
-        print(f'set_data_folder_path(): {path}')
         self.data_folder_report_path_is_changed = True
         self.data_folder_report_path = path
         self.trigger_event('data_folder_report_path_changed')

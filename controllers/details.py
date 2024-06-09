@@ -1,18 +1,12 @@
 import os
-import time
 import tkinter as tk
+from tkinter import messagebox
+from typing import List
 
-import openpyxl
-import pandas
-
-import paths
 from models.main import Model
-from views.main import View
-from threading import Thread
 from paths import flow_paths
-from typing import List, Dict
-from text_variables import TextGenerator, TextEnum
-from controllers.progress_bar import ProgresBarStatus
+from text_variables import TextEnum
+from views.main import View
 
 
 class DetailsController:
@@ -41,7 +35,6 @@ class DetailsController:
             return []
 
         print('DetailsController: create_buttons()')
-        stage: str = self.model.report_stage_flow_model.current_report['stage_str']
         flow: str = self.model.report_stage_flow_model.current_report['flow_str']
         name_list = get_names_from_flow()
         self.frame.create_buttons(name_list)
@@ -76,7 +69,6 @@ class DetailsController:
 
     def open_excel_file(self):
         try:
-            file_name = self.get_excel_path()
             path = self.model.base_data_frame_model.save_report_folder_path
             file_path = os.path.join(path, file_name)
             os.startfile(file_path)
@@ -86,6 +78,7 @@ class DetailsController:
             print(f"Wystąpił błąd podczas otwierania pliku: {e}")
 
     def get_excel_path(self) -> str | None:
+        stage: str = self.model.report_stage_flow_model.current_report['stage_str']
         flow: str = self.model.report_stage_flow_model.current_report['flow_str']
         name: str = self.frame.selected_btn
         if f'{flow}_paths' in flow_paths:

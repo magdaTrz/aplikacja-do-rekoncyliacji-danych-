@@ -1,5 +1,4 @@
 from models.main import Model
-from models.report_model import Report
 from views.main import View
 
 
