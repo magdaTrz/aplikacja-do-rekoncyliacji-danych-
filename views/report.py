@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import Frame, Label, Button, PhotoImage, ttk, scrolledtext
 from PIL import Image, ImageTk
+from datetime import datetime
+from pydispatch import dispatcher
 
 import paths
 from controllers.progress_bar import ProgresBarStatus
@@ -9,6 +11,8 @@ from controllers.progress_bar import ProgresBarStatus
 class ReportView(Frame):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Connect the signal receiver
+        dispatcher.connect(self.append_text, signal='update_text')
 
         # image background photo
         self.background_image = PhotoImage(file=paths.path_background_report)
@@ -61,3 +65,15 @@ class ReportView(Frame):
 
         # btn view details
         self.details_btn = ttk.Button(self, text="   Szczegóły", image=self.loupe_icon, compound="left")
+
+    def append_text(self, message: str, head: str) -> None:
+        def get_timestamp():
+            "Funkcja tworząca timestamp umieszczany w nazwie plików"
+            now = datetime.now()
+            formatted_timestamp = now.strftime("%H:%M:%S")
+            return formatted_timestamp
+
+        timestamp = get_timestamp()
+        formatted_message = f"{timestamp} - [{head.upper()}] {message}"
+        self.info_label.insert(tk.END, formatted_message + '\n')
+        self.info_label.see(tk.END)

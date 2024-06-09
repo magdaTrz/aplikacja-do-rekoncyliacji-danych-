@@ -1,6 +1,7 @@
 import os
 import time
 import tkinter
+from pydispatch import dispatcher
 from typing import Dict
 
 from models.main import Model
@@ -10,6 +11,7 @@ from paths import flow_paths
 from text_variables import TextGenerator, TextEnum
 from controllers.progress_bar import ProgresBarStatus
 
+UPDATE_TEXT_SIGNAL = 'update_text'
 
 class ReportController:
     def __init__(self, model: Model, view: View):
@@ -123,13 +125,13 @@ class ReportController:
     def perform_operations(self) -> None:
         stage: str = self.model.report_stage_flow_model.current_report['stage_str']
         flow: str = self.model.report_stage_flow_model.current_report['flow_str']
-        self.add_text_to_info_label(f"Wykonuję raporty: {(str(flow))}")
+        dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Ładowanie konfiguracji raportów {(str(flow))}", head='info')
         i = 1
         for path_info in flow_paths.get(f'{flow}_paths', []):
             self.current_number_report_changed(i)
             if stage == TextEnum.LOAD:
                 # wykonuje się tyle razy ile jest pod przepływów
-                self.add_text_to_info_label(TextGenerator.flow_lable_text())
+                dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=(TextGenerator.flow_lable_text()), head='info')
                 self.process_path_info(flow, stage, path_info)
             if stage == TextEnum.END:
                 print(TextEnum.END)
@@ -138,6 +140,7 @@ class ReportController:
         self.model.report_model.report_end_is_changed = False
 
     def process_path_info(self, flow: str, stage: str, path_info: Dict[str, str]) -> None:
+        """ W tej funkcji tezeba zaimportowac modele i przypsać im klasę  """
         if flow == TextEnum.KOI:
             self.model.base_data_frame_model.number_of_reports = 6
             from models.koi.oi_adresy import OiAdresy
@@ -145,8 +148,10 @@ class ReportController:
             from models.koi.oi_numb import OiNumb
             from models.koi.oi_password import OiPassword
             from models.koi.osoby_instytucje import OsobyInstytucje
+            from models.koi.oi_consents import OiConsents
             from models.koi.oi_atryb import OiAtryb
             model_classes = {
+                'oi_consents': OiConsents,
                 'osoby_instytucje': OsobyInstytucje,
                 'oi_password': OiPassword,
                 # 'oi_atryb': OiAtryb,
@@ -164,17 +169,28 @@ class ReportController:
 
     def process_model(self, flow: str, stage: str, path_info: Dict[str, str], ModelClass: Model) -> None:
         start_time: float = time.time()
-        self.add_text_to_info_label(TextGenerator.flow_lable_text())
-        dataframes = ModelClass(
-            stage=stage,
-            path_src=path_info['src'],
-            path_ext=path_info['ext'],
-            data_folder_report_path=self.model.base_data_frame_model.data_folder_report_path,
-            save_folder_report_path=self.model.base_data_frame_model.save_report_folder_path,
-            path_excel_file=path_info['excel'],
-            password=self.model.base_data_frame_model.password_report,
-        )
-        self.add_text_to_info_label(TextGenerator.mapping_lable_text())
+        if stage == TextEnum.LOAD:
+            dataframes = ModelClass(
+                stage=stage,
+                path_src=path_info['src'],
+                path_ext=path_info['ext'],
+                data_folder_report_path=self.model.base_data_frame_model.data_folder_report_path,
+                save_folder_report_path=self.model.base_data_frame_model.save_report_folder_path,
+                path_excel_file=path_info['excel'],
+                password=self.model.base_data_frame_model.password_report,
+            )
+        elif stage == TextEnum.END:
+            dataframes = ModelClass(
+                stage=stage,
+                path_src=path_info['ext'],
+                path_ext=path_info['tgt'],
+                data_folder_report_path=self.model.base_data_frame_model.data_folder_report_path,
+                save_folder_report_path=self.model.base_data_frame_model.save_report_folder_path,
+                path_excel_file=path_info['excel'],
+                password=self.model.base_data_frame_model.password_report,
+            )
+        else:
+            return
         success: bool = dataframes._carry_operations()
 
         total_rows = (dataframes.dataframe_src.shape[0] if dataframes.dataframe_src is not None else 0) + \
@@ -190,7 +206,7 @@ class ReportController:
             'Suma wierszy (łącznie z obu dataframe)': f"{total_rows} wierszy"
         }
 
-        self.add_text_to_info_label(TextGenerator.report_lable_text())
+        dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Tworzę raport Excel: {path_info['name']}", head='info')
         dataframes.create_report()
         self.model.base_data_frame_model.add_value_summary_dataframes(report_data)
         self.model.base_data_frame_model.add_value_details_percent_reconciliation_dataframes(path_info['name'],

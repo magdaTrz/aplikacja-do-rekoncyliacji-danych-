@@ -1,6 +1,6 @@
 from enum import Enum, auto
 from typing import overload
-
+from pydispatch import dispatcher
 
 class TextEnum(Enum):
     LOAD = auto()
@@ -21,17 +21,10 @@ class TextEnum(Enum):
 
 
 class TextGenerator:
-    @staticmethod
-    def report_lable_text(arg1: str) -> str:
-        return f"Przechodzę do raportu {arg1}"
 
     @staticmethod
     def flow_lable_text() -> str:
-        return f"Inicjuję klasę"
+        return f"Inicjalizacja klas do przetwarzania danych"
     @staticmethod
     def mapping_lable_text() -> str:
-        return f"Przechodzę do mapowania pól"
-
-    @staticmethod
-    def report_lable_text() -> str:
-        return f"Tworzę i zapisuję rapot"
+        return f"Przechodzę do mapowania pól danych"

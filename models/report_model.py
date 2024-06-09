@@ -1,14 +1,17 @@
 import os
+import pandas
 from typing import TypedDict, Union, Any, Dict
 
 from pandas import DataFrame
 from pandas.errors import ParserError
+from pydispatch import dispatcher
 
 from controllers.progress_bar import ProgresBarStatus
 from models.base import ObservableModel
 from models.custom_exceptions import ReconciliationFileNotFoundError
-import pandas
 import paths
+
+UPDATE_TEXT_SIGNAL = 'update_text'
 
 
 class Report(TypedDict):
@@ -122,7 +125,7 @@ class BaseDataFrameModel(ObservableModel):
             return pandas.DataFrame({"Informacja": ["brak danych"]})
 
     def set_migration_date(self, date: str):
-        print(f"set_migration_date(): {date}")
+        print(f"BaseDataFrameModel: set_migration_date(): {date}")
         self.migration_date = date
 
     def update_current_number_report(self, number: int):
@@ -194,11 +197,15 @@ class ReportModel(ObservableModel):
                 ProgresBarStatus.increase()
                 return dataframe
             else:
+                dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Dataframe jest pusta", head='fail')
                 print('ReportModel: set_colum_names(): ERROR: Dataframe is None')
         except pandas.errors.ParserError:
+            dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Błąd nadawania nazw kolum", head='fail')
             print('ReportModel: set_colum_names(): ERROR: ParserError')
             return pandas.DataFrame()
         except AttributeError:
+            dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Błąd AttributeError podczas nadawania nazw",
+                            head='fail')
             print('ReportModel: set_colum_names(): ERROR: AttributeError')
             return pandas.DataFrame()
 
@@ -207,6 +214,7 @@ class ReportModel(ObservableModel):
         path = os.path.join(os.getcwd(), '_logi')
         path_to_file = os.path.join(path, '_reko_plik_pomocniczy_niemigrowane_id.csv')
         unmigrated_dataframe = pandas.read_csv(path_to_file)
+        dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Usunięto klientów niemigrowanych", head='Success')
         return dataframe[~dataframe[column_name].isin(unmigrated_dataframe['numer'])]
 
     @staticmethod
@@ -218,6 +226,9 @@ class ReportModel(ObservableModel):
     @staticmethod
     def mapp_values(dataframe, columns_to_fill, columns_to_take, map_dict) -> pandas.DataFrame:
         if not isinstance(map_dict, dict):
+            dispatcher.send(signal=UPDATE_TEXT_SIGNAL,
+                            message=f"Wybrany słownik nie jest słownikiem.",
+                            head='fail')
             raise ValueError("map_dict powinien być słownikiem.")
 
         missing_columns = [col for col in columns_to_fill + columns_to_take if col not in dataframe.columns]
@@ -241,10 +252,17 @@ class ReportModel(ObservableModel):
                 else:
                     dataframe = pandas.read_csv(dir_str_path, sep=sep, header=None, low_memory=False, dtype=dtype)
                 ProgresBarStatus.increase()
+                dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Inicjalizowanie procesu tworzenia dataframe",
+                                head='info')
                 return dataframe
             except ParserError:
+                dispatcher.send(signal=UPDATE_TEXT_SIGNAL,
+                                message=f"Błąd inicjalizowania pliku, wykryto błąd w strukturze pliku: {path_to_file}",
+                                head='fail')
                 print(f"make_dataframe_from_file() ParserError")
-                # TODO: Obsłużyć taki wyjątek.
-                return
+                return pandas.DataFrame
         else:
-            return ReconciliationFileNotFoundError()
+            dispatcher.send(signal=UPDATE_TEXT_SIGNAL,
+                            message=f"Błąd inicjalizowania pliku, nie znaleziono pliku w folderze: {path_to_file}",
+                            head='fail')
+            return pandas.DataFrame
