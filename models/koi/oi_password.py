@@ -1,3 +1,5 @@
+import os
+
 import numpy
 import pandas
 
@@ -29,6 +31,7 @@ class OiPassword(ReportModel):
         self.password: None|str = password
 
     def _carry_operations(self) -> bool:
+        return
         print(f'OiPassword: _carry_operations(stage={self.stage})')
         ext_dataframe = self.make_dataframe_from_file(self.path_ext, self.data_folder_report_path)
         ext_dataframe = self.set_colum_names({0: 'oi_id'}, ext_dataframe)
@@ -78,18 +81,27 @@ class OiPassword(ReportModel):
     def create_report(self) -> TextEnum | bool:
         print(f"OiPassword(): create_report({self.path_excel}  {self.save_folder_report_path})")
         try:
-            excel_workbook = ExcelReport(self.path_excel, self.stage)
+            path_to_excel_file = os.path.join(self.save_folder_report_path, self.path_excel)
+            excel_workbook = ExcelReport(path_to_excel_file, self.stage)
         except Exception as e:
             print(f"OiPassword(): create_report  Error tworzenia excela : {e}")
             return TextEnum.EXCEL_ERROR
 
         try:
-            f2f = excel_workbook.create_f2f_report(
-                dataframe_1=self.dataframe_src,
-                dataframe_2=self.dataframe_ext,
-                merge_on_cols=["oi_id"],
-                compare_cols=["aneks_password"],
-                text_description="")
+            if self.stage == TextEnum.LOAD:
+                f2f = excel_workbook.create_f2f_report(
+                    dataframe_1=self.dataframe_src,
+                    dataframe_2=self.dataframe_ext,
+                    merge_on_cols=["oi_id"],
+                    compare_cols=["aneks_password"],
+                    text_description="Aneks na rejestru haseł podmiotów")
+            elif self.stage == TextEnum.END:
+                f2f = excel_workbook.create_f2f_report(
+                    dataframe_1=self.dataframe_ext,
+                    dataframe_2=self.dataframe_tgt,
+                    merge_on_cols=["oi_id"],
+                    compare_cols=["aneks_password"],
+                    text_description="Aneks na rejestru haseł podmiotów")
             self.summary_dataframe = excel_workbook.summary_dataframe
             self.merge_statistics_dataframe = excel_workbook.merge_statistics_dataframe
             self.percent_reconciliation_dataframe = excel_workbook.percent_reconciliation_dataframe
@@ -99,7 +111,7 @@ class OiPassword(ReportModel):
             return TextEnum.CREATE_ERROR
 
         try:
-            excel_workbook.save_to_excel({f"f2f_oi_password": f2f}, merge_on=["numer_klienta"])
+            excel_workbook.save_to_excel({f"f2f_oi_password": f2f}, merge_on=["oi_id"])
         except Exception as e:
             print(f"OiPassword(): create_report  Error zapisywania raportu : {e}")
             return TextEnum.SAVE_ERROR
