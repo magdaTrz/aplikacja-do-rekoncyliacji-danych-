@@ -135,7 +135,7 @@ class OiConsents(ReportModel):
             return TextEnum.CREATE_ERROR
 
         try:
-            excel_workbook.save_to_excel({f"f2f_oi_password": f2f}, merge_on=["numer_klienta"])
+            excel_workbook.save_to_excel({f"f2f_oi_consents": f2f}, merge_on=["numer_klienta", "consent_type"])
         except Exception as e:
             print(f"OiConsents(): create_report  Error zapisywania raportu : {e}")
             return TextEnum.SAVE_ERROR
