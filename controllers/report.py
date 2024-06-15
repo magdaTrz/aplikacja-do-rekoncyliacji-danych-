@@ -129,9 +129,9 @@ class ReportController:
         dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Ładowanie konfiguracji raportów {(str(flow))}",
                         head='info')
         i = 1
+        dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"{TextGenerator.flow_lable_text()}", head='info')
         for path_info in flow_paths.get(f'{flow}_paths', []):
             self.current_number_report_changed(i)
-            dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=(TextGenerator.flow_lable_text()), head='info')
             self.process_path_info(flow, stage, path_info)
             i += 1
         self.model.report_model.update_view_report()

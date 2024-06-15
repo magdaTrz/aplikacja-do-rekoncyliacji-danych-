@@ -1,4 +1,4 @@
-import tkinter as tk
+import tkinter
 from tkinter import Frame, Label, PhotoImage, ttk, scrolledtext
 from PIL import Image, ImageTk
 from datetime import datetime
@@ -19,7 +19,7 @@ class ReportView(Frame):
         resized_background_image = Image.open(paths.path_background_report)
         self.background_image = ImageTk.PhotoImage(resized_background_image)
 
-        self.background_label = tk.Label(self, image=self.background_image)
+        self.background_label = tkinter.Label(self, image=self.background_image)
         self.background_label.place(relwidth=1, relheight=1)
 
         # btn back
@@ -30,8 +30,8 @@ class ReportView(Frame):
         self.back_btn = ttk.Button(self, image=self.back_icon)
         self.back_btn.place(x=30, y=15)
 
-        # progresbar
-        ProgresBarStatus.progressbar_var = tk.DoubleVar()
+        # progressbar
+        ProgresBarStatus.progressbar_var = tkinter.DoubleVar()
         self.progress_bar = ttk.Progressbar(self, orient="horizontal",
                                             length=312,
                                             mode="determinate",
@@ -44,18 +44,15 @@ class ReportView(Frame):
         self.progress_bar_info = Label(self, text='')
         self.progress_bar_info.place(x=40, y=72, width=24, height=21)
 
-        # self.loading_label = ttk.Progressbar(self, orient="horizontal", length=50, mode='indeterminate')
-        # self.loading_label.place(x=394, y=65)
-
         self.info_label = scrolledtext.ScrolledText(self)
         self.info_label.place(x=40, y=100, width=640, height=260)
         font_spec = "Courier New", 8
         self.info_label.configure(font=font_spec)
 
         # icons
-        self.loupe_icon = tk.PhotoImage(file=paths.path_loupe_icon)
-        self.statistic_icon = tk.PhotoImage(file=paths.path_statistic_icon)
-        self.open_folder_icon = tk.PhotoImage(file=paths.path_open_folder_icon)
+        self.loupe_icon = tkinter.PhotoImage(file=paths.path_loupe_icon)
+        self.statistic_icon = tkinter.PhotoImage(file=paths.path_statistic_icon)
+        self.open_folder_icon = tkinter.PhotoImage(file=paths.path_open_folder_icon)
 
         # btn open folder
         self.open_folder_btn = ttk.Button(self, text="   Otwórz", image=self.open_folder_icon, compound="left")
@@ -74,5 +71,5 @@ class ReportView(Frame):
 
         timestamp = get_timestamp()
         formatted_message = f"{timestamp} - [{head.upper()}] {message}"
-        self.info_label.insert(tk.END, formatted_message + '\n')
-        self.info_label.see(tk.END)
+        self.info_label.insert(tkinter.END, formatted_message + '\n')
+        self.info_label.see(tkinter.END)
