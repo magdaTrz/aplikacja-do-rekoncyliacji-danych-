@@ -147,15 +147,13 @@ class ReportController:
             from models.koi.oi_password import OiPassword
             from models.koi.osoby_instytucje import OsobyInstytucje
             from models.koi.oi_consents import OiConsents
-            from models.koi.oi_atryb import OiAtryb
             model_classes = {
                 'oi_consents': OiConsents,
                 'osoby_instytucje': OsobyInstytucje,
                 'oi_password': OiPassword,
-                # 'oi_atryb': OiAtryb,
-                # 'oi_adresy': OiAdresy,
-                # 'oi_telecom': OiTelecom,
-                # 'oi_numb': OiNumb,
+                'oi_adresy': OiAdresy,
+                'oi_telecom': OiTelecom,
+                'oi_numb': OiNumb,
             }
         elif flow == TextEnum.UMO:
             self.model.base_data_frame_model.number_of_reports = 4
