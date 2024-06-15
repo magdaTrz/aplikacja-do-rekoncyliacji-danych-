@@ -316,12 +316,12 @@ class ExcelReport(ObservableModel):
             column_to_counts: str,
             text_description="",
     ):
-        dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Tworzę ramkę danych dla raportu check sum",
+        dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Tworzę ramkę danych dla raportu check sum: {column_to_counts}",
                         head='info')
 
-        if self.stage == "load":
+        if self.stage == TextEnum.LOAD:
             suffixes_tuple = ("_src", "_ext")
-        elif self.stage == "end":
+        elif self.stage == TextEnum.END:
             suffixes_tuple = ("_ext", "_tgt")
         else:
             suffixes_tuple = ("_x", "_y")
@@ -365,9 +365,9 @@ class ExcelReport(ObservableModel):
             ),
             "Decyzja": "",
             "Komentarz": "",
+            f"Opis: {text_description}": ""
         }
         summ_df = pandas.DataFrame(summ_dic)
-        # description_df = pandas.DataFrame({' ': ['Opis:'],' ': [text_description]})
         return [summ_df]
 
     @staticmethod
