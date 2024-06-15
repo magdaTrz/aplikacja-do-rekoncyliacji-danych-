@@ -156,8 +156,19 @@ class ReportController:
                 'oi_numb': OiNumb,
             }
         elif flow == TextEnum.UMO:
-            self.model.base_data_frame_model.number_of_reports = 4
-            # ...
+            self.model.base_data_frame_model.number_of_reports = 5
+            from models.umo.derywaty import Derywaty
+            from models.umo.rachunki_przelewy import RachunkiPrzelewy
+            from models.umo.brookerage_agreement import UmoBrokerage
+            from models.umo.umo_osoba import UmoOsoba
+            from models.umo.umowy import Umowy
+            model_classes = {
+                'derywaty': Derywaty,
+                'rachunki_przelewy': RachunkiPrzelewy,
+                'brokerage_agreement': UmoBrokerage,
+                'umo_osoba': UmoOsoba,
+                'umowy': Umowy,
+            }
 
         for name, ModelClass in model_classes.items():
             if path_info['name'] == name:
