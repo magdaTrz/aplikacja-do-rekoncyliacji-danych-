@@ -248,9 +248,10 @@ class ReportModel(ObservableModel):
         if os.path.exists(dir_str_path):
             try:
                 if dtype is None:
-                    dataframe = pandas.read_csv(dir_str_path, sep=sep, header=None, low_memory=False)
+                    dataframe = pandas.read_csv(dir_str_path, sep=sep, header=None, low_memory=False, encoding='utf-8')
                 else:
-                    dataframe = pandas.read_csv(dir_str_path, sep=sep, header=None, low_memory=False, dtype=dtype)
+                    dataframe = pandas.read_csv(dir_str_path, sep=sep, header=None, low_memory=False, dtype=dtype,
+                                                encoding='utf-8')
                 ProgresBarStatus.increase()
                 dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Inicjalizowanie procesu tworzenia dataframe",
                                 head='info')
