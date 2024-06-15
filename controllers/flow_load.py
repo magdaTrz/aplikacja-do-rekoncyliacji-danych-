@@ -91,21 +91,23 @@ class FlowLoadController:
         self.add_text_to_info_label(f'Wybierz dla którego przepływu chcecsz wykonać raport Go4Load.')
         self.frame.check_btn.place_forget()
         self.frame.xmark_btn.place_forget()
+        try:
+            for child in self.frame.winfo_children():
+                if child.winfo_class() == "Button":
+                    child.config(bg="SystemButtonFace", activebackground="SystemButtonFace", fg='green',
+                                 activeforeground="blue", highlightbackground="SystemButtonFace",
+                                 highlightcolor="SystemButtonFace")
 
-        for child in self.frame.winfo_children():
-            if child.winfo_class() == "Button":
-                child.config(bg="SystemButtonFace", activebackground="SystemButtonFace", fg='green',
-                             activeforeground="blue", highlightbackground="SystemButtonFace",
-                             highlightcolor="SystemButtonFace")
-
-        name_btn = str(current_report['flow_str']) + '_btn'
-        if hasattr(self.frame, name_btn):
-            style = ttk.Style()
-            style.configure("Black.TButton", background="white", foreground="black")
-            style.map("Black.TButton",
-                      background=[("pressed", "orange")],
-                      foreground=[("pressed", "purple")])
-            getattr(self.frame, name_btn).config(style="Black.TButton")
+            name_btn = str(current_report['flow_str']) + '_btn'
+            if hasattr(self.frame, name_btn):
+                style = ttk.Style()
+                style.configure("Black.TButton", background="white", foreground="black")
+                style.map("Black.TButton",
+                          background=[("pressed", "orange")],
+                          foreground=[("pressed", "purple")])
+                getattr(self.frame, name_btn).config(style="Black.TButton")
+        except Exception as e:
+            pass
 
     def set_data_folder_path_controller(self, path: str = '') -> None:
         print(f'set_data_folder_path_controller(): {path}')

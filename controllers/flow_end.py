@@ -91,21 +91,23 @@ class FlowEndController:
         self.add_text_to_info_label(f'Wybierz dla którego przepływu chcecsz wykonać raport Go4EndOfDay.')
         self.frame.check_btn.place_forget()
         self.frame.xmark_btn.place_forget()
+        try:
+            for child in self.frame.winfo_children():
+                if child.winfo_class() == "Button":
+                    child.config(bg="SystemButtonFace", activebackground="SystemButtonFace", fg='green',
+                                 activeforeground="blue", highlightbackground="SystemButtonFace",
+                                 highlightcolor="SystemButtonFace")
 
-        for child in self.frame.winfo_children():
-            if child.winfo_class() == "Button":
-                child.config(bg="SystemButtonFace", activebackground="SystemButtonFace", fg='green',
-                             activeforeground="blue", highlightbackground="SystemButtonFace",
-                             highlightcolor="SystemButtonFace")
-
-        name_btn = str(current_report['flow_str']) + '_btn'
-        if hasattr(self.frame, name_btn):
-            style = ttk.Style()
-            style.configure("Black.TButton", background="white", foreground="black")
-            style.map("Black.TButton",
-                      background=[("pressed", "orange")],
-                      foreground=[("pressed", "purple")])
-            getattr(self.frame, name_btn).config(style="Black.TButton")
+            name_btn = str(current_report['flow_str']) + '_btn'
+            if hasattr(self.frame, name_btn):
+                style = ttk.Style()
+                style.configure("Black.TButton", background="white", foreground="black")
+                style.map("Black.TButton",
+                          background=[("pressed", "orange")],
+                          foreground=[("pressed", "purple")])
+                getattr(self.frame, name_btn).config(style="Black.TButton")
+        except Exception as e:
+            pass
 
     def set_data_folder_path_controller(self, path: str = '') -> None:
         print(f'FlowEndController: set_data_folder_path_controller(): {path}')
@@ -121,7 +123,7 @@ class FlowEndController:
             self.frame.data_folder_path_label.config(text='')
             self.frame.data_folder_path_label.config(text=f'{path}')
 
-    def set_save_reports_folder_path_controller(self, path:str = '') -> None:
+    def set_save_reports_folder_path_controller(self, path: str = '') -> None:
         print(f'FlowEndController: set_save_reports_folder_path_controller(): {path}')
         if path != '':
             self.model.base_data_frame_model.set_save_report_folder_path(path)
