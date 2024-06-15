@@ -96,7 +96,8 @@ flow_paths = {
             'ext': 'rfs_out_oi_consents_ext.csv',
             'tgt': 'rfs_oi_consents_tgt.csv',
             'excel': f'Rekoncyliacja_RekomendacjaObszaru_KOI_4_{timestamp}.xlsx'
-        }],
+        }
+    ],
 
     'UMO_paths': [
         {
@@ -104,31 +105,37 @@ flow_paths = {
             'src': 'rfs_umowy_src.txt',
             'ext': 'rfs_out_umowy_ext.csv',
             'tgt': 'rfs_umowy_tgt.csv',
-            'excel': f'Rekoncyliacja_RekomendacjaObszaru_UMO_1_{timestamp}.xlsx'},
+            'excel': f'Rekoncyliacja_RekomendacjaObszaru_UMO_1_{timestamp}.xlsx'
+        },
         {
             'name': 'umo_osoba',
             'src': 'rfs_umo_osoba_src.txt',
             'ext': 'rfs_out_umo_osoba_ext.csv',
             'tgt': 'rfs_umo_osoba_tgt.csv',
-            'excel': f'Rekoncyliacja_RekomendacjaObszaru_UMO_1_{timestamp}.xlsx'},
+            'excel': f'Rekoncyliacja_RekomendacjaObszaru_UMO_1_{timestamp}.xlsx'
+        },
         {
             'name': 'derywaty',
             'src': 'rfs_derywaty_src.txt',
             'ext': 'rfs_out_derywaty_ext.csv',
             'tgt': 'rfs_derywaty_tgt.csv',
-            'excel': f'Rekoncyliacja_RekomendacjaObszaru_UMO_2_{timestamp}.xlsx'},
+            'excel': f'Rekoncyliacja_RekomendacjaObszaru_UMO_1_{timestamp}.xlsx'
+        },
         {
             'name': 'rachunki_przelewy',
             'src': 'rfs_rachunki_przelewy_src.txt',
             'ext': 'rfs_out_rachunki_przelewy_ext.csv',
             'tgt': 'rfs_rachunki_przelewy_tgt.csv',
-            'excel': f'Rekoncyliacja_RekomendacjaObszaru_UMO_2_{timestamp}.xlsx'},
+            'excel': f'Rekoncyliacja_RekomendacjaObszaru_UMO_2_{timestamp}.xlsx'
+        },
         {
             'name': 'brokerage_agreement',
             'src': 'rfs_brokerage_agreement_src.txt',
             'ext': 'rfs_out_brokerage_agreement_ext.csv',
             'tgt': 'rfs_brokerage_agreement_tgt.csv',
-            'excel': f'Rekoncyliacja_RekomendacjaObszaru_UMO_3_{timestamp}.xlsx'}],
+            'excel': f'Rekoncyliacja_RekomendacjaObszaru_UMO_2_{timestamp}.xlsx'
+        }
+    ],
 
     'KSGPW_paths': [
         {
@@ -137,7 +144,8 @@ flow_paths = {
             'ext': 'rfs_out_salda_pw_ext.csv',
             'tgt': 'rfs_salda_pw_tgt.csv',
             'excel': f'Rekoncyliacja_RekomendacjaObszaru_KSGPW_1_{timestamp}.xlsx'
-        }],
+        }
+    ],
 
     'KSGFIN_paths': [
         {
@@ -146,7 +154,8 @@ flow_paths = {
             'ext': 'rfs_out_salda_fin_ext.csv',
             'tgt': 'rfs_salda_fin_tgt_tgt.csv',
             'excel': f'Rekoncyliacja_RekomendacjaObszaru_KSGFIN_1_{timestamp}.xlsx'
-        }],
+        }
+    ],
 
     'MATE_paths': [
         {
@@ -155,5 +164,6 @@ flow_paths = {
             'ext': 'rfs_out_mate_ext.csv',
             'tgt': 'rfs_mate_tgt.csv',
             'excel': f'Rekoncyliacja_RekomendacjaObszaru_MATE_1_{timestamp}.xlsx'
-        }],
+        }
+    ],
 }
