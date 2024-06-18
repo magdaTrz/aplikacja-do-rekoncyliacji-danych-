@@ -9,6 +9,7 @@ from models.base import ObservableModel
 from text_variables import TextEnum
 import win32com.client as win32
 from pydispatch import dispatcher
+from controllers.progress_bar import ProgresBarStatus
 
 import pandas
 import time
@@ -44,6 +45,7 @@ class ExcelReport(ObservableModel):
             print(f"ExcelReport(): Error tworzę nowy excel : {e}")
         else:
             self.sheet = self.workbook.active
+        ProgresBarStatus.increase()
 
     def save_workbook(self):
         try:
@@ -52,8 +54,12 @@ class ExcelReport(ObservableModel):
             print(f"ExcelReport():Error podczas zapisywania Excela: {e}")
 
     def merge_and_compare(self, dataframe_1: pandas.DataFrame,
-                          dataframe_2: pandas.DataFrame, on_cols: list, compare_cols: list, round_cols: None = None):
-        dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Tworzę ramkę danych dla raportu field to field", head='info')
+                          dataframe_2: pandas.DataFrame,
+                          on_cols: list,
+                          compare_cols: list,
+                          round_cols: None = None):
+        dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Tworzę ramkę danych dla raportu field to field",
+                        head='info')
         if self.stage == TextEnum.LOAD:
             suffixes_tuple = ("_src", "_ext")
             _merge_mapping_dict = {
@@ -68,6 +74,8 @@ class ExcelReport(ObservableModel):
                 "right_only": "wiersz tylko w TGT",
                 "both": " ",
             }
+        ProgresBarStatus.increase()
+
         merged_df = pandas.merge(
             dataframe_1,
             dataframe_2,
@@ -84,6 +92,7 @@ class ExcelReport(ObservableModel):
                 + ["_merge"]
                 + [col for col in merged_df.columns if col not in on_cols + ["_merge"]]
         )
+        ProgresBarStatus.increase()
 
         # comparing columns and determining True False
         for col in compare_cols:
@@ -106,6 +115,7 @@ class ExcelReport(ObservableModel):
                 merged_df[f"{col}_"] = merged_df.apply(
                     lambda row: row[col_0] == row[col_1], axis=1
                 )
+        ProgresBarStatus.increase()
         return merged_df
 
     def create_summary_dataframe(
@@ -115,9 +125,11 @@ class ExcelReport(ObservableModel):
         reconciliation percentage "Kolumna": ,"Ilość True":, "Ilość False":, "Procent True":"""
         summary_dict = {
             "Kolumna": [],
-            "Ilość False": [],
-            "Ilość True": [],
-            "Procent True": [],
+            "Błąd": [],
+            "OK": [],
+            "Procent OK": [],
+            "Decycja": [],
+            "Komentarz": [],
         }
 
         for col in merged_result.columns:
@@ -135,15 +147,22 @@ class ExcelReport(ObservableModel):
 
                 # Add information to the dictionary
                 summary_dict["Kolumna"].append(col)
-                summary_dict["Ilość True"].append(
+                summary_dict["OK"].append(
                     self.format_number_with_space(true_count)
                 )
-                summary_dict["Ilość False"].append(
+                summary_dict["Błąd"].append(
                     self.format_number_with_space(false_count)
                 )
-                summary_dict["Procent True"].append(
+                summary_dict["Procent OK"].append(
                     self.format_procentage(true_percent)
                 )
+                summary_dict["Decycja"].append(
+                    'data_validation'
+                )
+                summary_dict["Komentarz"].append(
+                    ' '
+                )
+        ProgresBarStatus.increase()
         summary_dataframe = pandas.DataFrame(summary_dict)
         return summary_dataframe
 
@@ -178,6 +197,7 @@ class ExcelReport(ObservableModel):
         summary_dataframe[title1] = [dataframe1.shape[0]]
         summary_dataframe[title2] = [dataframe2.shape[0]]
         summary_dataframe["Opis raportu: "] = [text_description]
+        ProgresBarStatus.increase()
         return summary_dataframe
 
     def save_to_excel(
@@ -188,6 +208,19 @@ class ExcelReport(ObservableModel):
     ):
         dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Zapisuję dane do arkusza Excel",
                         head='info')
+        ProgresBarStatus.set_80_percent()
+
+        def apply_data_validation_to_cell(cell):
+            data_validation = DataValidation(
+                type="list",
+                formula1=f'"Go, Warunkowe Go, No Go"',
+                allow_blank=True,
+                # promptTitle="Wydaj rekomendację",
+                # prompt="Wybierz wartość z rozwijanej listy.",
+            )
+            cell.parent.add_data_validation(data_validation)
+            data_validation.add(cell)
+            print(f"Data validation applied to cell {cell.coordinate}")
 
         def get_last_filled_row(worksheet):
             for row in worksheet.iter_rows(max_row=worksheet.max_row, min_row=1):
@@ -212,24 +245,34 @@ class ExcelReport(ObservableModel):
                     continue
                 for row in dataframe_to_rows(dataframe, index=False, header=True):
                     worksheet.append(row)
+                    try:
+                        if len(row) > 4 and row[4] == 'data_validation':
+                            cell = worksheet.cell(row=worksheet.max_row, column=5)  # (E)
+                            cell.value = None
+                            apply_data_validation_to_cell(cell)
+                            print(f"Applied data validation to cell at row {worksheet.max_row}, column 5")
+
+                    except IndexError:
+                        pass
                 worksheet.append([])
                 start_row_list.append(start_row)
                 start_row += len(dataframe) + 2
             if "check_sum" in sheet_name:
-                if sheet_name == "check_sum_umowy_status_umowy":
-                    # special row list for check_sum_umowy to formate correct rows
-                    self.format_dataframe_with_colors(
-                        worksheet, [0, 4, 8, 12, 16, 21], dataframe
-                    )
-                else:
-                    self.format_dataframe_with_colors(
-                        worksheet, start_row_list, dataframe
-                    )
-            elif "f2f" in sheet_name:
+                # if sheet_name == "check_sum_umowy_status_umowy":
+                #     # special row list for check_sum_umowy to formate correct rows
+                #     self.format_dataframe_with_colors(
+                #         worksheet, [0, 4, 8, 12, 16, 21], dataframe
+                #     )
+                # else:
+                self.format_dataframe_with_colors(
+                    worksheet, start_row_list, dataframe
+                )
+            else:
                 self.format_dataframe_with_colors(
                     worksheet, start_row_list, dataframe, merge_on
                 )
 
+        ProgresBarStatus.increase()
         self.del_sheet("Sheet")
         is_saved = self.save_report()
         return is_saved
@@ -237,6 +280,7 @@ class ExcelReport(ObservableModel):
     def del_sheet(self, sheet_name: str) -> None:
         """Function that removes 'Sheet'"""
         if sheet_name in self.workbook.sheetnames:
+            ProgresBarStatus.increase()
             sheet = self.workbook[sheet_name]
             self.workbook.remove(sheet)
         return
@@ -259,6 +303,7 @@ class ExcelReport(ObservableModel):
         merge_and_compare_dataframe = self.merge_and_compare(
             dataframe_1, dataframe_2, merge_on_cols, compare_cols
         )
+        ProgresBarStatus.increase()
         summary_dataframe = self.create_summary_dataframe(merge_and_compare_dataframe)
         self.summary_dataframe = summary_dataframe
 
@@ -272,7 +317,7 @@ class ExcelReport(ObservableModel):
         self.merge_statistics_dataframe = self.create_merge_statistics(merge_and_compare_dataframe)
         self.percent_reconciliation_dataframe = self.create_reconciliation_statistics(merge_and_compare_dataframe)
         self.sample_dataframe = self.create_sample_datafame(merge_and_compare_dataframe)
-
+        ProgresBarStatus.increase()
         return [row_count_dataframe, summary_dataframe, merge_and_compare_dataframe]
 
     def check_sum_count(
@@ -307,6 +352,7 @@ class ExcelReport(ObservableModel):
             "Opis:": text_description,
         }
         count_df = pandas.DataFrame(count_dic, index=[0])
+        ProgresBarStatus.increase()
         return [count_df, summ_df, df]
 
     def check_sum(
@@ -316,7 +362,8 @@ class ExcelReport(ObservableModel):
             column_to_counts: str,
             text_description="",
     ):
-        dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Tworzę ramkę danych dla raportu check sum: {column_to_counts}",
+        dispatcher.send(signal=UPDATE_TEXT_SIGNAL,
+                        message=f"Tworzę ramkę danych dla raportu check sum: {column_to_counts}",
                         head='info')
 
         if self.stage == TextEnum.LOAD:
@@ -367,6 +414,7 @@ class ExcelReport(ObservableModel):
             "Komentarz": "",
             f"Opis: {text_description}": ""
         }
+        ProgresBarStatus.increase()
         summ_df = pandas.DataFrame(summ_dic)
         return [summ_df]
 
@@ -374,15 +422,17 @@ class ExcelReport(ObservableModel):
     def add_password_to_excel(file_path: str,
                               password: str):
         try:
-            dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Nadaję hasło na raport rekoncyliacji",
-                            head='info')
+            ProgresBarStatus.increase()
             excel = win32.gencache.EnsureDispatch('Excel.Application')
             workbook = excel.Workbooks.Open(file_path)
             workbook.Password = password
             workbook.Save()
             workbook.Close()
             excel.Quit()
-            print(f"Password successfully added to {file_path}")
+            if password is not None:
+                dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Nadaję hasło na raport rekoncyliacji", head='info')
+                print(f"Password successfully added to {file_path}")
+            ProgresBarStatus.set_1_percent()
         except Exception as e:
             print(f"An error occurred: {e}")
 
@@ -418,15 +468,30 @@ class ExcelReport(ObservableModel):
     ) -> None:
         last_row_to_format = max(rows_to_format) + 1
 
-        fill = PatternFill(start_color="8ea9db", end_color="8ea9db", fill_type="solid")
+        fill_red = PatternFill(start_color="DA9694", end_color="DA9694", fill_type="solid")
+        fill_red_light1 = PatternFill(start_color="E6B9B8", end_color="E6B9B8", fill_type="solid")
+        fill_red_light2 = PatternFill(start_color="E1AAA9", end_color="E1AAA9", fill_type="solid")
         font_bold = Font(bold=True)
-        font_gray = Font(color="808080")
+        font_gray = Font(color="404040")
+        font_white = Font(color="FFFFFF")
 
         for row_idx in rows_to_format:
             for col_idx, col_name in enumerate(dataframe.columns):
                 cell = worksheet.cell(row=row_idx + 2, column=col_idx + 1)
-                cell.fill = fill
-                cell.font = font_bold
+                if row_idx == rows_to_format[-1]:
+                    if col_name.endswith('_src') or col_name.endswith('_tgt'):
+                        cell.fill = fill_red_light2
+                    elif col_name.endswith('_ext'):
+                        cell.fill = fill_red_light1
+                    elif col_name.endswith('_merge') or col_name.endswith('_Maestro') or col_name.endswith('_maestro'):
+                        cell.font = font_white
+                        cell.fill = fill_red
+                    else:
+                        cell.fill = fill_red
+                else:
+                    cell.fill = fill_red
+                    cell.font = font_bold
+
         if merge_on is not None:
             columns_to_format = dataframe.columns[: len(merge_on)] if merge_on else []
             max_row = dataframe.shape[0] + last_row_to_format
@@ -479,6 +544,7 @@ class ExcelReport(ObservableModel):
         }
         dataframe = pandas.DataFrame(stats)
         dataframe = dataframe.set_index('Index')
+        ProgresBarStatus.increase()
         return dataframe
 
     @staticmethod
@@ -499,9 +565,10 @@ class ExcelReport(ObservableModel):
                 'True': int(true_count),
                 'False': int(false_count),
                 'True (%)': round(true_percentage, 2),
-                'False (%)': round(false_percentage,2)
+                'False (%)': round(false_percentage, 2)
             }
 
+        ProgresBarStatus.increase()
         return pandas.DataFrame(stats).transpose()
 
     @staticmethod

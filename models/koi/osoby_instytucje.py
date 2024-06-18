@@ -2,10 +2,13 @@ import os
 
 import pandas
 
+from pydispatch import dispatcher
 from controllers.progress_bar import ProgresBarStatus
 from models.report_model import ReportModel
 from text_variables import TextEnum
 from models.excel_report import ExcelReport
+
+UPDATE_TEXT_SIGNAL = 'update_text'
 
 
 class OsobyInstytucje(ReportModel):
@@ -27,7 +30,7 @@ class OsobyInstytucje(ReportModel):
         self.merge_statistics_dataframe: pandas.DataFrame | None = None
         self.percent_reconciliation_dataframe: pandas.DataFrame | None = None
         self.sample_dataframe: pandas.DataFrame | None = None
-        self.password:str|None = password
+        self.password: str | None = password
 
     def _carry_operations(self) -> bool:
         print(f'OsobyInstytucje: _carry_operations({self.stage=})')
@@ -126,16 +129,19 @@ class OsobyInstytucje(ReportModel):
             self.sample_dataframe = excel_workbook.sample_dataframe
         except Exception as e:
             print(f"OsobyInstytucje(): create_report  Error tworzenia raportu : {e}")
+            dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Błąd tworzenia raportu {e}", head='error')
             return TextEnum.CREATE_ERROR
 
         try:
             excel_workbook.save_to_excel({f"report_name": f2f}, merge_on=["numer_klienta"])
         except Exception as e:
             print(f"OsobyInstytucje(): create_report  Error zapisywania raportu : {e}")
+            dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Błąd zapisywania raportu {e}", head='error')
             return TextEnum.SAVE_ERROR
         try:
             excel_workbook.add_password_to_excel(path, self.password)
         except Exception as e:
-            print(f"OiPassword(): add_password_to_excel  Error daodawania hasła do raportu : {e}")
-
+            print(f"OiPassword(): add_password_to_excel  Error dodawania hasła do raportu : {e}")
+            dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Błąd dodawania hasła do raportu {e}", head='error')
         return True
+

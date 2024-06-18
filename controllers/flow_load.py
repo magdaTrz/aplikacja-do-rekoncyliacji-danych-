@@ -51,6 +51,7 @@ class FlowLoadController:
 
     def handle_selected_flow(self, flow: TextEnum) -> None:
         report = {"stage_str": TextEnum.LOAD, "flow_str": flow}
+        self.update_to_clear_view()
         self.model.report_stage_flow_model.report_save(report)
         for child in self.frame.winfo_children():
             if child.winfo_class() == "Button":
@@ -75,9 +76,12 @@ class FlowLoadController:
             self.add_text_to_info_label(f'Sprawdzam czy dla raportu GoForLoad {flow} są wszystkie potrzebne pliki.')
             missing_files = self.check_folder_for_files(flow_paths.get(str(flow) + '_paths', []))
             if missing_files is None:
+                self.frame.check_btn.place_forget()
+                self.frame.xmark_btn.place_forget()
                 self.add_text_to_info_label('Wszytkie potrzebne pliki znajdują się w folderze.')
                 self.frame.start_btn.place(x=390, y=430, width=165, height=40)
             else:
+                self.frame.start_btn.place_forget()
                 self.add_text_to_info_label(f'Brak następujących plików w folderze: {missing_files}')
                 self.add_text_to_info_label(f'Czy chcesz kontynuować \nbez tych plików?')
                 self.frame.check_btn.place(x=330, y=430, width=35, height=35)

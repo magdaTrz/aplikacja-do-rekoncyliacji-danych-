@@ -152,7 +152,7 @@ flow_paths = {
             'name': 'salda_fin',
             'src': 'rfs_salda_fin_src.txt',
             'ext': 'rfs_out_salda_fin_ext.csv',
-            'tgt': 'rfs_salda_fin_tgt_tgt.csv',
+            'tgt': 'rfs_salda_fin_tgt.csv',
             'excel': f'Rekoncyliacja_RekomendacjaObszaru_KSGFIN_1_{timestamp}.xlsx'
         }
     ],

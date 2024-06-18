@@ -140,7 +140,7 @@ class ReportController:
     def process_path_info(self, flow: str, stage: str, path_info: Dict[str, str]) -> None:
         """ W tej funkcji tezeba zaimportowac modele i przypsać im klasę  """
         if flow == TextEnum.KOI:
-            self.model.base_data_frame_model.number_of_reports = 6
+            self.model.base_data_frame_model.number_of_reports = 5
             from models.koi.oi_adresy import OiAdresy
             from models.koi.oi_telecom import OiTelecom
             from models.koi.oi_numb import OiNumb
@@ -148,12 +148,12 @@ class ReportController:
             from models.koi.osoby_instytucje import OsobyInstytucje
             from models.koi.oi_consents import OiConsents
             model_classes = {
-                'oi_consents': OiConsents,
-                'osoby_instytucje': OsobyInstytucje,
-                'oi_password': OiPassword,
-                'oi_adresy': OiAdresy,
+                # 'oi_consents': OiConsents,
+                # 'osoby_instytucje': OsobyInstytucje,
+                # 'oi_password': OiPassword,
+                # 'oi_adresy': OiAdresy,
                 'oi_telecom': OiTelecom,
-                'oi_numb': OiNumb,
+                # 'oi_numb': OiNumb,
             }
         elif flow == TextEnum.UMO:
             self.model.base_data_frame_model.number_of_reports = 5
@@ -169,6 +169,25 @@ class ReportController:
                 'umo_osoba': UmoOsoba,
                 'umowy': Umowy,
             }
+        elif flow == TextEnum.KSGPW:
+            self.model.base_data_frame_model.number_of_reports = 1
+            from models.ksgpw.salda_pw import SaldaPw
+            model_classes = {
+                'salda_pw': SaldaPw,
+            }
+        elif flow == TextEnum.KSGFIN:
+            self.model.base_data_frame_model.number_of_reports = 1
+            from models.ksgfin.salda_fin import SaldaFin
+            model_classes = {
+                'salda_fin': SaldaFin,
+            }
+        elif flow == TextEnum.MATE:
+            pass
+            # self.model.base_data_frame_model.number_of_reports = 1
+            # from models.mate.mate import Mate
+            # model_classes = {
+            #     'mate': Mate,
+            # }
 
         for name, ModelClass in model_classes.items():
             if path_info['name'] == name:

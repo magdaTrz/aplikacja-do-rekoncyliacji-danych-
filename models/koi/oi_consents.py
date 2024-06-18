@@ -3,11 +3,14 @@ import os
 import numpy
 import pandas
 
+from pydispatch import dispatcher
 import paths
 from controllers.progress_bar import ProgresBarStatus
 from models.excel_report import ExcelReport
 from models.report_model import ReportModel
 from text_variables import TextEnum
+
+UPDATE_TEXT_SIGNAL = 'update_text'
 
 
 class OiConsents(ReportModel):
@@ -132,16 +135,19 @@ class OiConsents(ReportModel):
             self.sample_dataframe = excel_workbook.sample_dataframe
         except Exception as e:
             print(f"OiConsents(): create_report  Error tworzenia raportu : {e}")
+            dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Błąd tworzenia raportu {e}", head='error')
             return TextEnum.CREATE_ERROR
 
         try:
             excel_workbook.save_to_excel({f"f2f_oi_consents": f2f}, merge_on=["numer_klienta", "consent_type"])
         except Exception as e:
             print(f"OiConsents(): create_report  Error zapisywania raportu : {e}")
+            dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Błąd zapisywania raportu {e}", head='error')
             return TextEnum.SAVE_ERROR
 
         try:
             excel_workbook.add_password_to_excel(self.path_excel, self.password)
         except Exception as e:
             print(f"OiConsents(): add_password_to_excel  Error daodawania hasła do raportu : {e}")
+            dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Błąd dodawania hasła do raportu {e}", head='error')
         return True

@@ -4,9 +4,9 @@ import time
 import numpy
 import pandas
 
-from .base import ObservableModel
+from models.base import  ObservableModel
 from paths import path_support_files_folder
-from .koi import dict_KOI
+from models.koi import dict_KOI
 
 
 def check_type(dataframe):
@@ -57,10 +57,12 @@ def check_type(dataframe):
                     break
         if not selected_row.empty:
             filtered_rows.append(selected_row)
-
-    filtered_df = pandas.concat(filtered_rows)
-    filtered_df.loc[:, 'status'] = 'MIGRUJEMY'
-    return filtered_df
+    try:
+        filtered_df = pandas.concat(filtered_rows)
+        filtered_df.loc[:, 'status'] = 'MIGRUJEMY'
+        return filtered_df
+    except ValueError:
+        return pandas.DataFrame(columns=[['numer', 'typ', 'pesel', 'cif']])
 
 
 def get_log_file_path():
@@ -150,11 +152,13 @@ class SupportFiles(ObservableModel):
     def create_support_file_is_migrated(self) -> None:
         dataframe_oi = pandas.read_csv(self.file_paths_list[1], sep='|', header=None,
                                        low_memory=False)
-        dataframe_oi = dataframe_oi.rename(columns={0: "numer", 1: "typ"}).drop(columns=[2, 3, 4, 5])
+        dataframe_oi = dataframe_oi.rename(columns={0: "numer", 1: "typ"})
+        dataframe_oi = dataframe_oi[["numer", "typ"]]
         self.progress_value += 10
 
         dataframe_numb = pandas.read_csv(self.file_paths_list[2], sep='|', header=None, low_memory=False)
-        dataframe_numb = dataframe_numb.rename(columns={0: "numer", 1: "symbol", 2: 'wartosc'}).drop(columns=[3, 4])
+        dataframe_numb = dataframe_numb.rename(columns={0: "numer", 1: "symbol", 2: 'wartosc'})
+        dataframe_numb = dataframe_numb[["numer", "symbol", "wartosc"]]
         dataframe_numb = dataframe_numb[dataframe_numb['symbol'].isin(['L', 'CIF'])]
         dataframe_numb = dataframe_numb.dropna(subset=['wartosc'])
         dataframe_numb['pesel'] = numpy.where(dataframe_numb['symbol'] == 'L', dataframe_numb['wartosc'], numpy.nan)

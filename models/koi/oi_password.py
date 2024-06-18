@@ -4,10 +4,13 @@ import numpy
 import pandas
 
 import paths
+from pydispatch import dispatcher
 from controllers.progress_bar import ProgresBarStatus
 from models.excel_report import ExcelReport
 from models.report_model import ReportModel
 from text_variables import TextEnum
+
+UPDATE_TEXT_SIGNAL = 'update_text'
 
 
 class OiPassword(ReportModel):
@@ -108,16 +111,19 @@ class OiPassword(ReportModel):
             self.sample_dataframe = excel_workbook.sample_dataframe
         except Exception as e:
             print(f"OiPassword(): create_report  Error tworzenia raportu : {e}")
+            dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Błąd tworzenia raportu {e}", head='error')
             return TextEnum.CREATE_ERROR
 
         try:
             excel_workbook.save_to_excel({f"f2f_oi_password": f2f}, merge_on=["oi_id"])
         except Exception as e:
             print(f"OiPassword(): create_report  Error zapisywania raportu : {e}")
+            dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Błąd zapisywania raportu {e}", head='error')
             return TextEnum.SAVE_ERROR
 
         try:
             excel_workbook.add_password_to_excel(self.path_excel, self.password)
         except Exception as e:
-            print(f"OiPassword(): add_password_to_excel  Error daodawania hasła do raportu : {e}")
+            print(f"OiPassword(): add_password_to_excel  Error dodawania hasła do raportu : {e}")
+            dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Błąd dodawania hasła do raportu {e}", head='error')
         return True

@@ -1,8 +1,8 @@
-from .support_files import SupportFiles
-from .report_model import ReportStageFlowModel
-from .report_model import BaseDataFrameModel
-from .report_model import ReportModel
-from .dict_update import DictUpdate
+from models.support_files import SupportFiles
+from models.report_model import ReportStageFlowModel
+from models.report_model import BaseDataFrameModel
+from models.report_model import ReportModel
+from models.dict_update import DictUpdate
 
 
 class Model:

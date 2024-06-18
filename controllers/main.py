@@ -2,14 +2,18 @@ from models.main import Model
 from models.report_model import ReportStageFlowModel, BaseDataFrameModel, ReportModel
 from views.main import View
 from text_variables import TextEnum
+from pydispatch import dispatcher
 
-from .start import StartController
-from .stage import StageController
-from .flow_load import FlowLoadController
-from .flow_end import FlowEndController
-from .report import ReportController
-from .summary import SummaryController
-from .details import DetailsController
+from controllers.progress_bar import ProgresBarStatus
+from controllers.start import StartController
+from controllers.stage import StageController
+from controllers.flow_load import FlowLoadController
+from controllers.flow_end import FlowEndController
+from controllers.report import ReportController
+from controllers.summary import SummaryController
+from controllers.details import DetailsController
+
+UPDATE_TEXT_SIGNAL = 'update_text'
 
 
 class Controller:
@@ -75,6 +79,8 @@ class Controller:
     def report_has_ended_state_listener(self, data: ReportModel) -> None:
         if data.report_end_is_changed:
             print(f'STATE LISTENER: report_has_ended_state_listener():')
+            dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Zakończono pracę.", head='logi')
+            ProgresBarStatus.set_100_percent()
             self.report_controller.update_view_report_ended()
 
     def summary_view_state_listener(self, data: BaseDataFrameModel) -> None:

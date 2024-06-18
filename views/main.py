@@ -1,14 +1,14 @@
 from typing import TypedDict
 
-from .root import Root
-from .stage import StageView
-from .start import StartView
+from views.root import Root
+from views.stage import StageView
+from views.start import StartView
 
-from .flow_load import FlowLoadView
-from .flow_end import FlowEndView
-from .report import ReportView
-from .summary import SummaryView
-from .details import DetailsView
+from views.flow_load import FlowLoadView
+from views.flow_end import FlowEndView
+from views.report import ReportView
+from views.summary import SummaryView
+from views.details import DetailsView
 
 
 class Frames(TypedDict):

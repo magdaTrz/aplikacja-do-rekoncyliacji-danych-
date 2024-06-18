@@ -1,39 +1,209 @@
-class SaldaFin:
-    def __init__(self, src_df=None, ext_df=None, tgt_df=None, excel_path=""):
-        print("Salda Finansowe Klienckie")
-        self.src_df = src_df
-        self.ext_df = ext_df
-        self.tgt_df = tgt_df
-        self.excel_path = excel_path
-        self.carry_operation()
+import os
 
-    def carry_operation(self):
-        balance_accounts = ['24504', '24505', '24506', '24507', '24508']
-        self.add_column_names()
-        if self.src_df is not None and self.ext_df is not None:
-            self.src_df = self.src_df[self.src_df['rachunek'] != 13]
-            self.ext_df = self.ext_df[self.ext_df['rachunek'] != 13]
-            src_Maestro = self.convert_src()
-            converted_src = src_Maestro[['rachunek', 'konto', 'subkonto', 'waluta', 'czy_konto_pdst_klienta', 'saldo',
-                                         'rach_13', 'konto_13', 'subkonto_13', 'strona_13']]
-            converted_ext = self.convert_ext()
-            del self.src_df, self.ext_df
-            print(text_variables.do_report)
-            report = ExcelReport(self.excel_path)
+import numpy
+import pandas
 
+from pydispatch import dispatcher
+
+from models.dict_update import DictUpdate
+from controllers.progress_bar import ProgresBarStatus
+from models.excel_report import ExcelReport
+from models.report_model import ReportModel
+from text_variables import TextEnum
+
+UPDATE_TEXT_SIGNAL = 'update_text'
+
+
+class SaldaFin(ReportModel):
+    def __init__(self, stage: str, path_src=None, path_ext=None, path_tgt=None, data_folder_report_path='',
+                 save_folder_report_path='', path_excel_file='report.xlsx', password=None):
+        super().__init__()
+        self.stage = stage
+        self.path_src = path_src
+        self.path_ext = path_ext
+        self.path_tgt = path_tgt
+        self.data_folder_report_path: str = data_folder_report_path
+        self.save_folder_report_path: str = save_folder_report_path
+        self.path_excel: str = path_excel_file
+        self.dataframe_src: pandas.DataFrame | None = None
+        self.dataframe_ext: pandas.DataFrame | None = None
+        self.dataframe_tgt: pandas.DataFrame | None = None
+        self.summary_dataframe: pandas.DataFrame | None = None
+        self.merge_statistics_dataframe: pandas.DataFrame | None = None
+        self.percent_reconciliation_dataframe: pandas.DataFrame | None = None
+        self.sample_dataframe: pandas.DataFrame | None = None
+        self.password: None | str = password
+
+    def _carry_operations(self) -> bool:
+        print(f'SaldaFin: _carry_operations(stage={self.stage})')
+
+        ext_dataframe = self.make_dataframe_from_file(self.path_ext, self.data_folder_report_path)
+        ext_dataframe = self.set_colum_names(
+            {0: 'rachunek', 1: 'konto', 2: 'czy_konto_pdst_klienta', 3: 'subkonto', 4: 'waluta', 5: 'czy_saldo_wn',
+             6: 'saldo', 7: 'rach_13', 8: 'konto_13', 9: 'subkonto_13', 10: 'strona_13'},
+            ext_dataframe)
+        if self.stage == TextEnum.LOAD:
+            src_dataframe = self.make_dataframe_from_file(self.path_src, self.data_folder_report_path)
+            src_dataframe = self.set_colum_names({0: 'rachunek', 1: 'konto', 2: 'czy_konto_pdst_klienta', 3: 'subkonto',
+                                                  4: 'subkonto_pdst', 5: 'spw_r', 6: 'waluta', 7: 'czy_saldo_wn',
+                                                  8: 'saldo', 9: 'rach_13', 10: 'konto_13', 11: 'subkonto_13',
+                                                  12: 'strona_13', 13: 'nr_swiadectwa_Maestro',
+                                                  14: 'kod_papieru_Maestro'},
+                                                 src_dataframe)
+
+            if src_dataframe.empty or ext_dataframe.empty:
+                return False
+            else:
+                self.dataframe_src = self.convert_src(src_dataframe)
+                self.dataframe_ext = self.convert_ext(ext_dataframe)
+                ProgresBarStatus.increase()
+                return True
+
+        if self.stage == TextEnum.END:
+            tgt_dataframe = self.make_dataframe_from_file(self.path_tgt, self.data_folder_report_path)
+            tgt_dataframe = self.set_colum_names(
+                {0: 'rachunek', 1: 'konto', 2: 'czy_konto_pdst_klienta', 3: 'subkonto', 4: 'waluta', 5: 'czy_saldo_wn',
+                 6: 'saldo', 7: 'rach_13', 8: 'konto_13', 9: 'subkonto_13', 10: 'strona_13'},
+                tgt_dataframe)
+
+            if ext_dataframe.empty or tgt_dataframe.empty:
+                return False
+            else:
+                self.dataframe_ext = self.convert_ext(ext_dataframe, is_eod=True)
+                self.dataframe_tgt = self.convert_tgt(tgt_dataframe)
+                ProgresBarStatus.increase()
+                return True
+
+    @staticmethod
+    def convert_src(dataframe: pandas.DataFrame) -> pandas.DataFrame:
+
+        def cols_mapping(row, column_to_map, col1_fill, col2_fill, mapping_dict):
+            key = row[column_to_map]
+            if key in mapping_dict:
+                values = mapping_dict[key]
+                row[col1_fill] = values[0]
+                row[col2_fill] = values[1]
+            elif key is None:
+                pass
+            else:
+                row[col1_fill] = row[col1_fill]
+                row[col2_fill] = row[col2_fill]
+            return row
+
+        def map_values_to_columns(dataframe, column_to_map, col1_fill, col2_fill, map_dict) -> pandas.DataFrame:
+            return dataframe.apply(cols_mapping, args=(column_to_map, col1_fill, col2_fill), axis=1,
+                                   mapping_dict=map_dict)
+
+        dict_update = DictUpdate()
+
+        dataframe['key_three'] = None
+        dataframe['key_four'] = None
+
+        try:
+            dataframe['czy_sponsor'] = dataframe.apply(
+                lambda row: 'T' if str(row['nr_swiadectwa_Maestro']).lstrip('0') != str(row['rachunek']) else 'F',
+                axis=1)
+            dataframe.loc[dataframe['czy_sponsor'] == 'F', ['nr_swiadectwa_Maestro', 'kod_papieru_Maestro']] = None
+        except Exception as e:
+            dispatcher.send(signal=UPDATE_TEXT_SIGNAL,
+                            message=f"Błąd kolumn pomocniczych: ['nr_swiadectwa_Maestro',kod_papieru_Maestro'] {e}",
+                            head='error')
+        dict_konto_fin = [konto for konto in dict_update.get_dict_konto_fin()]
+        dataframe['konto_Maestro'] = dataframe['konto']
+        dataframe['subkonto_Maestro'] = dataframe['subkonto']
+        dataframe['subkonto_pdst_Maestro'] = dataframe['subkonto_pdst']
+        dataframe['spw_r_Maestro'] = dataframe['spw_r']
+
+        condition = dataframe['konto'].isin(dict_konto_fin)
+        dataframe.loc[:, 'subkonto'] = dataframe.loc[:, 'subkonto'].astype(str).str.lstrip('0')
+        dataframe.loc[:, 'subkonto_pdst'] = dataframe.loc[:, 'subkonto_pdst'].astype(str).str.lstrip('0')
+
+        dataframe.loc[condition, 'key_four'] = dataframe['konto'].astype(str) + dataframe['subkonto'].astype(str) + dataframe['subkonto_pdst'].astype(str) + dataframe['spw_r'].astype(str)
+        dataframe.loc[~condition, 'key_three'] = dataframe['konto'].astype(str) + dataframe['subkonto'].astype(str) \
+                                                 + dataframe['subkonto_pdst'].astype(str)
+        condition_2 = (dataframe['konto'] == 139)
+        condition_3 = (dataframe['subkonto'].isin(['23', '24', '25', '26', '27', '22']))
+        dataframe.loc[(condition_2 & condition_3), 'key_three'] = \
+            dataframe['konto'].astype(str) + dataframe['subkonto'].astype(str) + dataframe['subkonto_pdst'].astype(str)
+
+        dataframe = map_values_to_columns(dataframe, 'key_three', 'konto', 'subkonto',
+                                          dict_update.get_dict_konto_subkonto())
+        dataframe = map_values_to_columns(dataframe, 'key_four', 'konto', 'subkonto',
+                                          dict_update.get_dict_spwr_konto_subkonto())
+
+        del dataframe['key_three']
+        del dataframe['key_four']
+        return dataframe[
+            ['rachunek', 'konto', 'subkonto', 'waluta', 'konto_Maestro', 'subkonto_Maestro', 'subkonto_pdst_Maestro',
+             'spw_r_Maestro', 'nr_swiadectwa_Maestro', 'kod_papieru_Maestro', 'czy_saldo_wn', 'czy_konto_pdst_klienta',
+             'saldo', 'rach_13', 'konto_13', 'subkonto_13', 'strona_13']]
+
+    @staticmethod
+    def convert_ext(dataframe: pandas.DataFrame, is_eod=False) -> pandas.DataFrame:
+        dataframe.loc[:, 'konto'] = dataframe.loc[:, 'konto'].astype(str)
+        dataframe.loc[:, 'subkonto'] = dataframe.loc[:, 'subkonto'].astype(str).str.lstrip('0')
+        if is_eod:
+            con_1 = (dataframe['subkonto'] == '80100')
+            con_2 = (dataframe['saldo'] < 0)
+            dataframe.loc[(con_1 & con_2), 'subkonto'] = '80200'
+        return dataframe[['rachunek', 'konto', 'subkonto', 'waluta', 'czy_saldo_wn', 'czy_konto_pdst_klienta', 'saldo',
+                          'rach_13', 'konto_13', 'subkonto_13', 'strona_13']]
+
+    @staticmethod
+    def convert_tgt(dataframe: pandas.DataFrame) -> pandas.DataFrame:
+        dataframe.loc[:, 'konto'] = dataframe.loc[:, 'konto'].astype(str)
+        dataframe.loc[:, 'subkonto'] = dataframe.loc[:, 'subkonto'].astype(str)
+        dataframe.loc[:, 'konto'] = dataframe['konto'].apply(lambda x: x.replace('.0', ''))
+        dataframe.loc[:, 'subkonto'] = dataframe['subkonto'].apply(lambda x: x.replace('.0', ''))
+        dataframe.loc[:, 'subkonto'] = dataframe.loc[:, 'subkonto'].str.lstrip('0')
+        return dataframe[['rachunek', 'konto', 'subkonto', 'waluta', 'czy_saldo_wn', 'czy_konto_pdst_klienta', 'saldo',
+                          'rach_13', 'konto_13', 'subkonto_13', 'strona_13']]
+
+    @staticmethod
+    def prepare_dataframe_waluta_saldo(dataframe_1: pandas.DataFrame,
+                                       dataframe_2: pandas.DataFrame,
+                                       is_eod=False) -> pandas.DataFrame:
+        if is_eod:
+            balance_accounts = ['24504', '24505', '24506', '24507', '24508']
+            '''Raport waluta|konto|saldo'''
+            waluta_df_ext = dataframe_1[['waluta', 'konto', 'saldo']].copy()
+            waluta_df_tgt = dataframe_2[['waluta', 'konto', 'saldo']].copy()
+            waluta_df_tgt = waluta_df_tgt[~waluta_df_tgt['konto'].isin(balance_accounts)]
+            waluta_df_ext = waluta_df_ext.groupby(['waluta'], as_index=False)['saldo'].sum()
+            waluta_df_tgt = waluta_df_tgt.groupby(['waluta'], as_index=False)['saldo'].sum()
+            return [waluta_df_ext, waluta_df_tgt]
+        else:
             '''Raport waluta|saldo'''
+            converted_src = dataframe_1[['rachunek', 'konto', 'subkonto', 'waluta', 'czy_konto_pdst_klienta', 'saldo',
+                                         'rach_13', 'konto_13', 'subkonto_13', 'strona_13']]
+            converted_ext = dataframe_2
             waluta_df_src = converted_src[['waluta', 'saldo']].copy()
             waluta_df_ext = converted_ext[['waluta', 'saldo']].copy()
             waluta_df_src = waluta_df_src.groupby(['waluta'], as_index=False)['saldo'].sum()
             waluta_df_ext = waluta_df_ext.groupby(['waluta'], as_index=False)['saldo'].sum()
-            report.field_to_field_load(df_1=waluta_df_src, df_2=waluta_df_ext,
-                                       sheet_name="waluta_klient_suma_sald",
-                                       merge_on=['waluta'])
-            del waluta_df_ext
+            return [waluta_df_src, waluta_df_ext]
 
+    @staticmethod
+    def prepare_dataframe_detail(dataframe_1: pandas.DataFrame,
+                                 dataframe_2: pandas.DataFrame,
+                                 is_eod=False) -> pandas.DataFrame:
+        if is_eod:
+            balance_accounts = ['24504', '24505', '24506', '24507', '24508']
+            saldo_df_ext = dataframe_1.groupby(
+                ['rachunek', 'konto', 'subkonto', 'waluta'],
+                as_index=False)['saldo'].sum()
+            saldo_df_tgt = dataframe_2.groupby(
+                ['rachunek', 'konto', 'subkonto', 'waluta'],
+                as_index=False)['saldo'].sum()
+            pandas.set_option('display.float_format', '{:.2f}'.format)
+            saldo_df_ext = saldo_df_ext.astype({'konto': str, 'subkonto': str})
+            saldo_df_tgt = saldo_df_tgt.astype({'konto': str, 'subkonto': str})
+            saldo_df_tgt = saldo_df_tgt[~saldo_df_tgt['konto'].isin(balance_accounts)]
+            return [saldo_df_ext, saldo_df_tgt]
+        else:
             '''Raport oznaczeniaMaestro'''
-            saldo_df_src = src_Maestro.groupby(
-                ['rachunek', 'konto', 'subkonto', 'waluta'],as_index=False).agg({
+            saldo_df_src = dataframe_1.groupby(
+                ['rachunek', 'konto', 'subkonto', 'waluta'], as_index=False).agg({
                 'saldo': 'sum',
                 'konto_Maestro': 'first',
                 'subkonto_Maestro': 'first',
@@ -42,291 +212,78 @@ class SaldaFin:
                 'nr_swiadectwa_Maestro': 'first',
                 'kod_papieru_Maestro': 'first'
             })
-            saldo_df_ext = converted_ext.groupby(
-                ['rachunek', 'konto', 'subkonto', 'waluta'], as_index=False)['saldo'].sum()
-            del src_Maestro, converted_ext,
+            saldo_df_ext = dataframe_2.groupby(['rachunek', 'konto', 'subkonto', 'waluta'],
+                                               as_index=False)['saldo'].sum()
 
             pandas.set_option('display.float_format', '{:.2f}'.format)
             saldo_df_src = saldo_df_src.astype({'konto': str, 'subkonto': str})
             saldo_df_ext = saldo_df_ext.astype({'konto': str, 'subkonto': str})
-            report.field_to_field_load(
-                df_1=saldo_df_src[['rachunek', 'konto', 'subkonto', 'waluta', 'konto_Maestro', 'subkonto_Maestro',
-                                   'subkonto_pdst_Maestro', 'spw_r_Maestro', 'nr_swiadectwa_Maestro',
-                                   'kod_papieru_Maestro', 'saldo']],
-                df_2=saldo_df_ext[['rachunek', 'konto', 'subkonto', 'waluta', 'saldo']],
-                sheet_name="rach_klient_suma_sald",
-                merge_on=['rachunek', 'konto', 'subkonto', 'waluta'],
-                maestro_keys=['konto_Maestro', 'subkonto_Maestro', 'subkonto_pdst_Maestro',
-                              'spw_r_Maestro', 'nr_swiadectwa_Maestro', 'kod_papieru_Maestro'])
+            return [saldo_df_src, saldo_df_ext]
 
-            waluty = saldo_df_src['waluta'].unique().tolist()
-            for waluta in waluty:
-                saldo_df_src_filtered = saldo_df_src[saldo_df_src['waluta'] == waluta]
-                saldo_df_ext_filtered = saldo_df_ext[saldo_df_ext['waluta'] == waluta]
+    def create_report(self) -> TextEnum | bool:
+        self.path_excel = self.modify_filename(self.path_excel, self.stage)
+        print(f"SaldaFin(): create_report({self.path_excel}  {self.save_folder_report_path})")
+        try:
+            path_to_excel_file = os.path.join(self.save_folder_report_path, self.path_excel)
+            excel_workbook = ExcelReport(path_to_excel_file, self.stage)
+        except Exception as e:
+            print(f"SaldaFin(): create_report  Error tworzenia excela : {e}")
+            return TextEnum.EXCEL_ERROR
 
-                if not saldo_df_src_filtered.empty and not saldo_df_ext_filtered.empty:
-                    sheet_name = f"rach_klient_{waluta.lower()}"
+        try:
+            if self.stage == TextEnum.LOAD:
+                dataframes_waluta = self.prepare_dataframe_waluta_saldo(self.dataframe_src, self.dataframe_ext)
+                raport_waluta = excel_workbook.create_f2f_report(
+                    dataframe_1=dataframes_waluta[0],
+                    dataframe_2=dataframes_waluta[1],
+                    merge_on_cols=["waluta"],
+                    compare_cols=["saldo"],
+                    text_description="Raport sprawdzający sumę sald pogrupowaną według waluty.")
+                dataframes_detail = self.prepare_dataframe_detail(self.dataframe_src, self.dataframe_ext)
+                raport_detail = excel_workbook.create_f2f_report(
+                    dataframe_1=dataframes_detail[0],
+                    dataframe_2=dataframes_detail[1],
+                    merge_on_cols=['rachunek', 'konto', 'subkonto', 'waluta'],
+                    compare_cols=["saldo"],
+                    text_description="Zestawienie zawartości kartoteki kont finansowych."
+                )
+            elif self.stage == TextEnum.END:
+                dataframes_waluta = self.prepare_dataframe_waluta_saldo(self.dataframe_ext, self.dataframe_tgt,
+                                                                        is_eod=True)
+                raport_waluta = excel_workbook.create_f2f_report(
+                    dataframe_1=dataframes_waluta[0],
+                    dataframe_2=dataframes_waluta[1],
+                    merge_on_cols=["waluta"],
+                    compare_cols=["saldo"],
+                    text_description="Raport sprawdzający sumę sald pogrupowaną według waluty.")
+                dataframes_detail = self.prepare_dataframe_detail(self.dataframe_ext, self.dataframe_tgt, is_eod=True)
+                raport_detail = excel_workbook.create_f2f_report(
+                    dataframe_1=dataframes_detail[0],
+                    dataframe_2=dataframes_detail[1],
+                    merge_on_cols=['rachunek', 'konto', 'subkonto', 'waluta'],
+                    compare_cols=["saldo"],
+                    text_description="Zestawienie zawartości kartoteki kont finansowych."
+                )
+            self.summary_dataframe = excel_workbook.summary_dataframe
+            self.merge_statistics_dataframe = excel_workbook.merge_statistics_dataframe
+            self.percent_reconciliation_dataframe = excel_workbook.percent_reconciliation_dataframe
+            self.sample_dataframe = excel_workbook.sample_dataframe
+        except Exception as e:
+            print(f"SaldaFin(): create_report  Error tworzenia raportu : {e}")
+            dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Błąd tworzenia raportu {e}", head='error')
+            return TextEnum.CREATE_ERROR
 
-                    report.field_to_field_load(
-                        df_1=saldo_df_src_filtered[
-                            ['rachunek', 'konto', 'subkonto', 'waluta', 'konto_Maestro', 'subkonto_Maestro',
-                             'subkonto_pdst_Maestro', 'spw_r_Maestro', 'nr_swiadectwa_Maestro',
-                             'kod_papieru_Maestro', 'saldo']],
-                        df_2=saldo_df_ext_filtered[['rachunek', 'konto', 'subkonto', 'waluta', 'saldo']],
-                        sheet_name=sheet_name,
-                        merge_on=['rachunek', 'konto', 'subkonto', 'waluta'],
-                        maestro_keys=['konto_Maestro', 'subkonto_Maestro', 'subkonto_pdst_Maestro',
-                                      'spw_r_Maestro', 'nr_swiadectwa_Maestro', 'kod_papieru_Maestro']
-                    )
-                    del saldo_df_src_filtered, saldo_df_ext_filtered
-            report.save_report()
+        try:
+            excel_workbook.save_to_excel({f"sum_waluta_salda": raport_waluta, f"sum_rach_klient_sald": raport_detail},
+                                         merge_on=['rachunek', 'konto', 'subkonto', 'waluta'])
+        except Exception as e:
+            print(f"SaldaFin(): create_report  Error zapisywania raportu : {e}")
+            dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Błąd zapisywania raportu {e}", head='error')
+            return TextEnum.SAVE_ERROR
 
-            elif self.ext_df is not None and self.tgt_df is not None:
-            self.ext_df = self.ext_df[self.ext_df['rachunek'] != 13]
-            self.tgt_df = self.tgt_df[self.tgt_df['rachunek'] != 13]
-            self.tgt_df = self.tgt_df[self.tgt_df['saldo'] != 0]
-
-            converted_ext = self.convert_ext(is_eod=True)
-            converted_tgt = self.convert_tgt()
-            del self.ext_df
-            print(text_variables.do_report)
-            report = ExcelReport(self.excel_path)
-
-            '''Raport waluta|konto|saldo'''
-            waluta_df_ext = converted_ext[['waluta', 'konto', 'saldo']].copy()
-            waluta_df_tgt = converted_tgt[['waluta', 'konto', 'saldo']].copy()
-            waluta_df_tgt = waluta_df_tgt[~waluta_df_tgt['konto'].isin(balance_accounts)]
-            waluta_df_ext = waluta_df_ext.groupby(['waluta'], as_index=False)['saldo'].sum()
-            waluta_df_tgt = waluta_df_tgt.groupby(['waluta'], as_index=False)['saldo'].sum()
-            report.field_to_field_target(df_1=waluta_df_ext, df_2=waluta_df_tgt,
-                                         sheet_name="waluta_klient_suma_sald",
-                                         merge_on=['waluta'])
-            del waluta_df_ext
-
-            '''Raport oznaczeniaMaestro'''
-            saldo_df_ext = converted_ext.groupby(
-                ['rachunek', 'konto', 'subkonto', 'waluta'],
-                as_index=False)['saldo'].sum()
-            saldo_df_tgt = converted_tgt.groupby(
-                ['rachunek', 'konto', 'subkonto', 'waluta'],
-                as_index=False)['saldo'].sum()
-            pandas.set_option('display.float_format', '{:.2f}'.format)
-            saldo_df_ext = saldo_df_ext.astype({'konto': str, 'subkonto': str})
-            saldo_df_tgt = saldo_df_tgt.astype({'konto': str, 'subkonto': str})
-            saldo_df_tgt = saldo_df_tgt[~saldo_df_tgt['konto'].isin(balance_accounts)]
-            # report.field_to_field_target(df_1=saldo_df_ext, df_2=saldo_df_tgt,
-            #                              sheet_name="rach_klient_suma_sald",
-            #                              merge_on=['rachunek', 'konto', 'subkonto', 'waluta'],
-            #                              maestro_keys=['konto_Maestro', 'subkonto_Maestro', 'subkonto_pdst_Maestro',
-            #                                            'spw_r_Maestro'])
-
-            waluty = saldo_df_ext['waluta'].unique().tolist()
-            for waluta in waluty:
-                saldo_df_ext_filtered = saldo_df_ext[saldo_df_ext['waluta'] == waluta]
-                saldo_df_tgt_filtered = saldo_df_tgt[saldo_df_tgt['waluta'] == waluta]
-
-                if not saldo_df_tgt_filtered.empty and not saldo_df_ext_filtered.empty:
-                    sheet_name = f"rach_klient_{waluta.lower()}"
-
-                    # report.field_to_field_target(
-                    #     df_1=saldo_df_ext_filtered,
-                    #     df_2=saldo_df_tgt_filtered,
-                    #     sheet_name=sheet_name,
-                    #     merge_on=['rachunek', 'konto', 'subkonto', 'waluta'],
-                    #     maestro_keys=['konto_Maestro', 'subkonto_Maestro', 'subkonto_pdst_Maestro','spw_r_Maestro']
-                    # )
-                    del saldo_df_ext_filtered, saldo_df_tgt_filtered
-            report.save_report()
-
-            '''Raport SRC - TGT'''
-            timestamp = get_timestamp()
-            try:
-                print('Raport Maestro-Promak')
-                working_directory = os.getcwd()
-                working_directory_dane = os.path.join(working_directory, 'dane')
-                self.src_df = pandas.read_csv(fr'{working_directory_dane}\rfs_salda_fin_src.txt', sep='|',
-                                              header=None, low_memory=False)
-                src_column_names = {0: 'rachunek', 1: 'konto', 2: 'czy_konto_pdst_klienta', 3: 'subkonto',
-                                    4: 'subkonto_pdst',
-                                    5: 'spw_r', 6: 'waluta', 7: 'czy_saldo_wn', 8: 'saldo', 9: 'rach_13',
-                                    10: 'konto_13',
-                                    11: 'subkonto_13', 12: 'strona_13', 13: 'nr_swiadectwa_Maestro',
-                                    14: 'kod_papieru_Maestro'}
-                self.src_df = delete_empty_column(self.src_df)
-                self.src_df = self.src_df.rename(columns=src_column_names)
-                self.src_df = self.src_df[self.src_df['rachunek'] != 13]
-                src_Maestro = self.convert_src()
-                converted_src = src_Maestro[
-                    ['rachunek', 'konto', 'subkonto', 'waluta', 'czy_konto_pdst_klienta', 'saldo',
-                     'rach_13', 'konto_13', 'subkonto_13', 'strona_13']]
-
-                converted_tgt = self.convert_tgt()
-
-                working_directory_report = os.path.join(working_directory,
-                                                        f'PromakNext_RekomendacjaObszaru_Reko_FIN_{timestamp}.xlsx')
-                report_maestro_promak = ExcelReport(working_directory_report)
-
-                '''Raport waluta|saldo'''
-                waluta_df_src = converted_src[['waluta', 'saldo']].copy()
-                waluta_df_src = waluta_df_src.groupby(['waluta'], as_index=False)['saldo'].sum()
-                waluta_df_tgt = converted_tgt[['waluta', 'saldo']].copy()
-                waluta_df_tgt = waluta_df_tgt.groupby(['waluta'], as_index=False)['saldo'].sum()
-                report_maestro_promak.field_to_field_load(df_1=waluta_df_src, df_2=waluta_df_tgt,
-                                                          sheet_name="waluta_klient_suma_sald",
-                                                          merge_on=['waluta'],
-                                                          description=text_variables.description_fin_maestro_vs_promak_1)
-                del waluta_df_src, waluta_df_tgt
-
-                saldo_df_src = src_Maestro.groupby(
-                    ['rachunek', 'konto', 'subkonto', 'waluta'], as_index=False).agg({
-                    'saldo': 'sum',
-                    'konto_Maestro': 'first',
-                    'subkonto_Maestro': 'first',
-                    'subkonto_pdst_Maestro': 'first',
-                    'spw_r_Maestro': 'first',
-                    'nr_swiadectwa_Maestro': 'first',
-                    'kod_papieru_Maestro': 'first',
-                })
-                saldo_df_src = saldo_df_src.astype({'konto': str, 'subkonto': str})
-
-                con_1 = (saldo_df_src['subkonto'] == '80100')
-                con_2 = (saldo_df_src['saldo'] < 0)
-                saldo_df_src.loc[(con_1 & con_2), 'subkonto'] = '802'
-
-                report_maestro_promak.field_to_field_load(
-                    df_1=saldo_df_src[['rachunek', 'konto', 'subkonto', 'waluta', 'konto_Maestro', 'subkonto_Maestro',
-                                       'subkonto_pdst_Maestro', 'spw_r_Maestro', 'nr_swiadectwa_Maestro',
-                                       'kod_papieru_Maestro', 'saldo']],
-                    df_2=saldo_df_tgt[['rachunek', 'konto', 'subkonto', 'waluta', 'saldo']],
-                    sheet_name="rach_klient_suma_sald",
-                    merge_on=['rachunek', 'konto', 'subkonto', 'waluta'],
-                    maestro_keys=['konto_Maestro', 'subkonto_Maestro', 'subkonto_pdst_Maestro', 'spw_r_Maestro',
-                                  'nr_swiadectwa_Maestro', 'kod_papieru_Maestro'],
-                    description=text_variables.description_fin_maestro_vs_promak_1)
-
-                src_Maestro = src_Maestro.astype({'konto': str, 'subkonto': str})
-                saldo_konto_sub_wal_src = src_Maestro.groupby(
-                    ['konto', 'subkonto', 'waluta'], as_index=False).agg({
-                    'saldo': 'sum',
-                    'konto_Maestro': 'first',
-                    'subkonto_Maestro': 'first',
-                    'subkonto_pdst_Maestro': 'first',
-                    'spw_r_Maestro': 'first',
-                    'nr_swiadectwa_Maestro': 'first',
-                    'kod_papieru_Maestro': 'first',
-                })
-                saldo_df_tgt = saldo_df_tgt.astype({'konto': str, 'subkonto': str})
-                saldo_konto_sub_wal_tgt = saldo_df_tgt.groupby(
-                    ['konto', 'subkonto', 'waluta'], as_index=False).agg({
-                    'saldo': 'sum'
-                })
-
-                report_maestro_promak.field_to_field_load(
-                    df_1=saldo_konto_sub_wal_src[['konto', 'subkonto', 'waluta', 'konto_Maestro', 'subkonto_Maestro',
-                                                  'subkonto_pdst_Maestro', 'spw_r_Maestro', 'nr_swiadectwa_Maestro',
-                                                  'kod_papieru_Maestro', 'saldo']],
-                    df_2=saldo_konto_sub_wal_tgt[['konto', 'subkonto', 'waluta', 'saldo']],
-                    sheet_name="konto_subkonto_waluta",
-                    merge_on=['konto', 'subkonto', 'waluta'],
-                    maestro_keys=['konto_Maestro', 'subkonto_Maestro', 'subkonto_pdst_Maestro', 'spw_r_Maestro',
-                                  'nr_swiadectwa_Maestro', 'kod_papieru_Maestro'])
-
-                del saldo_df_src, saldo_df_tgt
-
-                report_maestro_promak.save_report()
-            except FileNotFoundError:
-                print(f'   Pominięto wykonywanie raportu PromakNext_RekomendacjaObszaru_Reko_FIN_{timestamp}.xlsx')
-        else:
-            print(text_variables.wrong_inputs)
-
-        def add_column_names(self):
-            src_column_names = {0: 'rachunek', 1: 'konto', 2: 'czy_konto_pdst_klienta', 3: 'subkonto',
-                                4: 'subkonto_pdst',
-                                5: 'spw_r', 6: 'waluta', 7: 'czy_saldo_wn', 8: 'saldo', 9: 'rach_13', 10: 'konto_13',
-                                11: 'subkonto_13', 12: 'strona_13', 13: 'nr_swiadectwa_Maestro',
-                                14: 'kod_papieru_Maestro'}
-            ext_column_names = {0: 'rachunek', 1: 'konto', 2: 'czy_konto_pdst_klienta', 3: 'subkonto', 4: 'waluta',
-                                5: 'czy_saldo_wn', 6: 'saldo', 7: 'rach_13', 8: 'konto_13',
-                                9: 'subkonto_13', 10: 'strona_13'}
-            tgt_column_names = {0: 'rachunek', 1: 'konto', 2: 'czy_konto_pdst_klienta', 3: 'subkonto', 4: 'waluta',
-                                5: 'czy_saldo_wn', 6: 'saldo', 7: 'rach_13', 8: 'konto_13',
-                                9: 'subkonto_13', 10: 'strona_13', 11: 'numerf'}
-            try:
-                self.ext_df = delete_empty_column(self.ext_df)
-                self.ext_df = self.ext_df.rename(columns=ext_column_names)
-                if self.tgt_df is not None:
-                    self.tgt_df = delete_empty_column(self.tgt_df)
-                    self.tgt_df = self.tgt_df.rename(columns=tgt_column_names)
-                elif self.src_df is not None:
-                    self.src_df = delete_empty_column(self.src_df)
-                    self.src_df = self.src_df.rename(columns=src_column_names)
-            except pandas.errors.ParserError:
-                print(text_variables.quantity_col)
-
-        def convert_src(self):
-            df_c = self.src_df.copy()
-            print(text_variables.do_mapp)
-            df_c['key_three'] = None
-            df_c['key_four'] = None
-
-            try:
-                df_c['czy_sponsor'] = df_c.apply(
-                    lambda row: 'T' if str(row['nr_swiadectwa_Maestro']).lstrip('0') != str(row['rachunek']) else 'F',
-                    axis=1)
-                df_c.loc[df_c['czy_sponsor'] == 'F', ['nr_swiadectwa_Maestro', 'kod_papieru_Maestro']] = None
-            except:
-                print("   Błąd kolumn pomocniczych: ['nr_swiadectwa_Maestro','kod_papieru_Maestro']")
-            dict_konto_fin = [konto for konto in _dict_konto_fin]
-            df_c['konto_Maestro'] = df_c['konto']
-            df_c['subkonto_Maestro'] = df_c['subkonto']
-            df_c['subkonto_pdst_Maestro'] = df_c['subkonto_pdst']
-            df_c['spw_r_Maestro'] = df_c['spw_r']
-
-            condition = df_c['konto'].isin(dict_konto_fin)
-            df_c.loc[:, 'subkonto'] = df_c.loc[:, 'subkonto'].astype(str).str.lstrip('0')
-            df_c.loc[:, 'subkonto_pdst'] = df_c.loc[:, 'subkonto_pdst'].astype(str).str.lstrip('0')
-
-            df_c.loc[condition, 'key_four'] = df_c['konto'].astype(str) + df_c['subkonto'].astype(str) \
-                                              + df_c['subkonto_pdst'].astype(str) + df_c['spw_r'].astype(str)
-            df_c.loc[~condition, 'key_three'] = df_c['konto'].astype(str) + df_c['subkonto'].astype(str) \
-                                                + df_c['subkonto_pdst'].astype(str)
-            condition_2 = (df_c['konto'] == 139)
-            condition_3 = (df_c['subkonto'].isin(['23', '24', '25', '26', '27', '22']))
-            df_c.loc[(condition_2 & condition_3), 'key_three'] = df_c['konto'].astype(str) + df_c['subkonto'].astype(
-                str) \
-                                                                 + df_c['subkonto_pdst'].astype(str)
-
-            df_c = map_values_to_columns(df_c, 'key_three', 'konto', 'subkonto', _dict_konto_subkonto)
-            df_c = map_values_to_columns(df_c, 'key_four', 'konto', 'subkonto', _dict_spwr_konto_subkonto)
-
-            del df_c['key_three']
-            del df_c['key_four']
-            return df_c[
-                ['rachunek', 'konto', 'subkonto', 'waluta', 'konto_Maestro', 'subkonto_Maestro',
-                 'subkonto_pdst_Maestro',
-                 'spw_r_Maestro', 'nr_swiadectwa_Maestro', 'kod_papieru_Maestro', 'czy_saldo_wn',
-                 'czy_konto_pdst_klienta',
-                 'saldo', 'rach_13', 'konto_13', 'subkonto_13', 'strona_13']]
-
-        def convert_ext(self, is_eod=False):
-            print(text_variables.do_mapp)
-            df_c = self.ext_df.copy()
-            df_c.loc[:, 'konto'] = df_c.loc[:, 'konto'].astype(str)
-            df_c.loc[:, 'subkonto'] = df_c.loc[:, 'subkonto'].astype(str).str.lstrip('0')
-            if is_eod:
-                con_1 = (df_c['subkonto'] == '80100')
-                con_2 = (df_c['saldo'] < 0)
-                df_c.loc[(con_1 & con_2), 'subkonto'] = '80200'
-            return df_c[['rachunek', 'konto', 'subkonto', 'waluta', 'czy_saldo_wn', 'czy_konto_pdst_klienta', 'saldo',
-                         'rach_13', 'konto_13', 'subkonto_13', 'strona_13']]
-
-        def convert_tgt(self):
-            print(text_variables.do_mapp)
-            df_c = self.tgt_df.copy()
-            df_c.loc[:, 'konto'] = df_c.loc[:, 'konto'].astype(str)
-            df_c.loc[:, 'subkonto'] = df_c.loc[:, 'subkonto'].astype(str)
-            df_c.loc[:, 'konto'] = df_c['konto'].apply(lambda x: x.replace('.0', ''))
-            df_c.loc[:, 'subkonto'] = df_c['subkonto'].apply(lambda x: x.replace('.0', ''))
-            df_c.loc[:, 'subkonto'] = df_c.loc[:, 'subkonto'].str.lstrip('0')
-            return df_c[['rachunek', 'konto', 'subkonto', 'waluta', 'czy_saldo_wn', 'czy_konto_pdst_klienta', 'saldo',
-                         'rach_13', 'konto_13', 'subkonto_13', 'strona_13']]
+        try:
+            excel_workbook.add_password_to_excel(self.path_excel, self.password)
+        except Exception as e:
+            print(f"SaldaFin(): add_password_to_excel  Error dodawania hasła do raportu : {e}")
+            dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Błąd dodawania hasła do raportu {e}", head='error')
+        return True
