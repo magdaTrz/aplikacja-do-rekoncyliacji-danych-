@@ -37,17 +37,6 @@ class StartView(Frame):
         self.start_btn = ttk.Button(self, text="Zaczynamy ->", style='Custom.TButton')
         self.start_btn.place(x=70, y=190, width=140, height=50)
 
-        # image company
-        photo_acn = ImageTk.PhotoImage(Image.open(paths.path_acn))
-        photo_sbm = ImageTk.PhotoImage(Image.open(paths.path_sbm))
-
-        # self.label_acn = ttk.Label(self, image=photo_acn)
-        # self.label_acn.image = photo_acn
-        # self.label_sbm = ttk.Label(self, image=photo_sbm)
-        # self.label_sbm.image = photo_sbm
-        # self.label_acn.place(x=30, y=330, width=130, height=105)
-        # self.label_sbm.place(x=170, y=330, width=130, height=105)
-
         # btn help
         self.help_image = PhotoImage(file=paths.path_help_icon)
         resized_help_icon = Image.open(paths.path_help_icon)

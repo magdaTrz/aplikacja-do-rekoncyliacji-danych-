@@ -3,7 +3,7 @@ from datetime import datetime
 
 current_working_dir = os.getcwd()
 
-path_background_color = fr'{current_working_dir}\img\background color.png'
+path_background_color = fr'{current_working_dir}\img\background_color.png'
 path_help_icon = fr'{current_working_dir}\img\question_icon.png'
 path_background_start = fr'{current_working_dir}\img\bg_start.png'
 path_background_stage = fr'{current_working_dir}\img\bg_stage.png'
@@ -24,8 +24,6 @@ path_statistic_icon = fr'{current_working_dir}\img\statistic_icon.png'
 path_chart_icon = fr'{current_working_dir}\img\chart_icon.png'
 path_group_icon = fr'{current_working_dir}\img\group_icon.png'
 path_table_icon = fr'{current_working_dir}\img\table_icon.png'
-path_acn = fr'{current_working_dir}\img\acn_logo.png'
-path_sbm = fr'{current_working_dir}\img\sbm_logo.png'
 path_add_file_icon = fr'{current_working_dir}\img\add_file_icon.png'
 path_gear_icon = fr'{current_working_dir}\img\gear_icon.png'
 path_folder_icon = fr'{current_working_dir}\img\folder_icon.png'
