@@ -182,12 +182,11 @@ class ReportController:
                 'salda_fin': SaldaFin,
             }
         elif flow == TextEnum.MATE:
-            pass
-            # self.model.base_data_frame_model.number_of_reports = 1
-            # from models.mate.mate import Mate
-            # model_classes = {
-            #     'mate': Mate,
-            # }
+            self.model.base_data_frame_model.number_of_reports = 1
+            from models.mate.mate import Mate
+            model_classes = {
+                'mate': Mate,
+            }
 
         for name, ModelClass in model_classes.items():
             if path_info['name'] == name:
