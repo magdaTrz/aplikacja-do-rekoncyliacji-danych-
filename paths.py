@@ -1,38 +1,46 @@
 import os
+import sys
 from datetime import datetime
 
-current_working_dir = os.getcwd()
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
 
-path_background_color = fr'{current_working_dir}\img\background_color.png'
-path_help_icon = fr'{current_working_dir}\img\question_icon.png'
-path_background_start = fr'{current_working_dir}\img\bg_start.png'
-path_background_stage = fr'{current_working_dir}\img\bg_stage.png'
-path_background_flow = fr'{current_working_dir}\img\bg_flow.png'
-path_background_report = fr'{current_working_dir}\img\bg_raport.png'
-path_background_details = fr'{current_working_dir}\img\bg_details.png'
-path_background_stage_settings = fr'{current_working_dir}\img\bg_stage_settings.png'
-path_back_icon = fr'{current_working_dir}\img\left_back.png'
-path_start_text = fr'{current_working_dir}\img\text_start.png'
-path_save_icon = fr'{current_working_dir}\img\save_icon.png'
-path_lock_icon = fr'{current_working_dir}\img\lock_icon.png'
-path_check_icon = fr'{current_working_dir}\img\check_icon.png'
-path_xmark_icon = fr'{current_working_dir}\img\xmark_icon.png'
-path_calendar_icon = fr'{current_working_dir}\img\calendar_icon.png'
-path_open_folder_icon = fr'{current_working_dir}\img\open_folder_icon.png'
-path_loupe_icon = fr'{current_working_dir}\img\loupe_icon.png'
-path_statistic_icon = fr'{current_working_dir}\img\statistic_icon.png'
-path_chart_icon = fr'{current_working_dir}\img\chart_icon.png'
-path_group_icon = fr'{current_working_dir}\img\group_icon.png'
-path_table_icon = fr'{current_working_dir}\img\table_icon.png'
-path_add_file_icon = fr'{current_working_dir}\img\add_file_icon.png'
-path_gear_icon = fr'{current_working_dir}\img\gear_icon.png'
-path_folder_icon = fr'{current_working_dir}\img\folder_icon.png'
-path_add_folder_icon = fr'{current_working_dir}\img\add_folder_icon.png'
-path_excel_icon = fr'{current_working_dir}\img\excel_icon.png'
-path_support_files = fr'{current_working_dir}\dane\klienci_all.txt'
-path_support_files_folder = fr'{current_working_dir}\dane'
-path_dict_folder = fr'{current_working_dir}\słowniki'
-path_loading = fr"{current_working_dir}\img\Dual Ring-2.4s-30px.gif"
+    return os.path.join(base_path, relative_path)
+
+current_working_dir = os.getcwd()
+path_background_color = resource_path('img/background_color.png')
+path_help_icon = resource_path('img/question_icon.png')
+path_background_start = resource_path('img/bg_start.png')
+path_background_stage = resource_path('img/bg_stage.png')
+path_background_flow = resource_path('img/bg_flow.png')
+path_background_report = resource_path('img/bg_raport.png')
+path_background_details = resource_path('img/bg_details.png')
+path_background_stage_settings = resource_path('img/bg_stage_settings.png')
+path_back_icon = resource_path('img/left_back.png')
+path_start_text = resource_path('img/text_start.png')
+path_save_icon = resource_path('img/save_icon.png')
+path_lock_icon = resource_path('img/lock_icon.png')
+path_check_icon = resource_path('img/check_icon.png')
+path_xmark_icon = resource_path('img/xmark_icon.png')
+path_calendar_icon = resource_path('img/calendar_icon.png')
+path_open_folder_icon = resource_path('img/open_folder_icon.png')
+path_loupe_icon = resource_path('img/loupe_icon.png')
+path_statistic_icon = resource_path('img/statistic_icon.png')
+path_chart_icon = resource_path('img/chart_icon.png')
+path_group_icon = resource_path('img/group_icon.png')
+path_table_icon = resource_path('img/table_icon.png')
+path_add_file_icon = resource_path('img/add_file_icon.png')
+path_gear_icon = resource_path('img/gear_icon.png')
+path_folder_icon = resource_path('img/folder_icon.png')
+path_add_folder_icon = resource_path('img/add_folder_icon.png')
+path_excel_icon = resource_path('img/excel_icon.png')
+
+path_support_files = resource_path('dane/klienci_all.txt')
+path_support_files_folder = resource_path('dane')
+path_dict_folder = resource_path('slowniki')
 
 
 def get_timestamp():

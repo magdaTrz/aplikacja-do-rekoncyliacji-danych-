@@ -25,8 +25,8 @@ class FlowEndController:
         self.frame.MATE_btn.config(command=lambda: self.handle_selected_flow(flow=TextEnum.MATE))
 
         self.frame.data_folder_path_label.bind('<Button-1>', self.set_data_folder_path_controller())
-        self.frame.choose_dir_fromwhere_data_filedialog_btn.\
-            config(command=lambda: self.choose_folder(folder='data_folder_report_path'))
+        self.frame.choose_dir_fromwhere_data_filedialog_btn.config(
+            command=lambda: self.choose_folder(folder='data_folder_report_path'))
 
         self.frame.where_save_reports_label.bind('<Button-1>', self.set_save_reports_folder_path_controller())
         self.frame.choose_dir_to_save_filedialog_btn.config(
