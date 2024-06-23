@@ -35,6 +35,10 @@ class ExcelReport(ObservableModel):
             self.workbook = openpyxl.load_workbook(self.file_name)
         except (FileNotFoundError, BadZipFile):
             self.create_new_workbook()
+        except PermissionError:
+            self.file_name = self.file_name.replace(".xlsx", "_1.xlsx")
+            dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Z powodu otwartego Arkusza excel zapisze się pod nazwą {self.file_name}",
+                            head='Error')
         if self.password_report is not None:
             self.workbook.password = self.password_report
 
@@ -50,6 +54,12 @@ class ExcelReport(ObservableModel):
     def save_workbook(self):
         try:
             self.workbook.save(self.file_name)
+        except PermissionError:
+            self.file_name = self.file_name.replace(".xlsx", "_1.xlsx")
+            self.workbook.save(self.file_name)
+            dispatcher.send(signal=UPDATE_TEXT_SIGNAL,
+                            message=f"Z powodu otwartego Arkusza excel zapisze się pod nazwą {self.file_name}",
+                            head='Error')
         except Exception as e:
             print(f"ExcelReport():Error podczas zapisywania Excela: {e}")
 
@@ -215,12 +225,9 @@ class ExcelReport(ObservableModel):
                 type="list",
                 formula1=f'"Go, Warunkowe Go, No Go"',
                 allow_blank=True,
-                # promptTitle="Wydaj rekomendację",
-                # prompt="Wybierz wartość z rozwijanej listy.",
             )
             cell.parent.add_data_validation(data_validation)
             data_validation.add(cell)
-            print(f"Data validation applied to cell {cell.coordinate}")
 
         def get_last_filled_row(worksheet):
             for row in worksheet.iter_rows(max_row=worksheet.max_row, min_row=1):
@@ -241,7 +248,6 @@ class ExcelReport(ObservableModel):
 
             for dataframe in dataframes_list:
                 if dataframe.empty:
-                    print(f"Warning: DataFrame is empty for sheet {sheet_name}")
                     continue
                 for row in dataframe_to_rows(dataframe, index=False, header=True):
                     worksheet.append(row)
@@ -250,20 +256,12 @@ class ExcelReport(ObservableModel):
                             cell = worksheet.cell(row=worksheet.max_row, column=5)  # (E)
                             cell.value = None
                             apply_data_validation_to_cell(cell)
-                            print(f"Applied data validation to cell at row {worksheet.max_row}, column 5")
-
                     except IndexError:
                         pass
                 worksheet.append([])
                 start_row_list.append(start_row)
                 start_row += len(dataframe) + 2
             if "check_sum" in sheet_name:
-                # if sheet_name == "check_sum_umowy_status_umowy":
-                #     # special row list for check_sum_umowy to formate correct rows
-                #     self.format_dataframe_with_colors(
-                #         worksheet, [0, 4, 8, 12, 16, 21], dataframe
-                #     )
-                # else:
                 self.format_dataframe_with_colors(
                     worksheet, start_row_list, dataframe
                 )
