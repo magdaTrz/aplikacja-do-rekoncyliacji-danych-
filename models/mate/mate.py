@@ -88,7 +88,7 @@ class Mate(ReportModel):
         if is_eod_report:
             dataframe['data'] = pandas.to_datetime(dataframe['data'].fillna('23-09-1677'),
                                                    format='%d-%m-%Y',
-                                                   serrors='coerce')
+                                                   errors='coerce')
             dataframe['data'] = dataframe['data'].dt.strftime('%Y-%m-%d')
             dataframe.loc[dataframe['data'] == '1677-09-23', 'data'] = numpy.nan
         return dataframe[['rachunek', 'kod_klienta', 'typ', 'data', 'portfolio_id']]
@@ -114,15 +114,15 @@ class Mate(ReportModel):
                 f2f = excel_workbook.create_f2f_report(
                     dataframe_1=self.dataframe_src,
                     dataframe_2=self.dataframe_ext,
-                    merge_on_cols=["rachunek"],
-                    compare_cols=['kod_klienta', 'typ', 'data', 'portfolio_id'],
+                    merge_on_cols=["kod_klienta"],
+                    compare_cols=['rachunek', 'typ', 'data', 'portfolio_id'],
                     text_description="Wszystkie rachunki dla których został zarejestrowany aneks o doradztwo inwestycyjne.")
             elif self.stage == TextEnum.END:
                 f2f = excel_workbook.create_f2f_report(
                     dataframe_1=self.dataframe_ext,
                     dataframe_2=self.dataframe_tgt,
-                    merge_on_cols=["rachunek"],
-                    compare_cols=['kod_klienta', 'typ', 'data', 'portfolio_id'],
+                    merge_on_cols=["kod_klienta"],
+                    compare_cols=['rachunek', 'typ', 'data', 'portfolio_id'],
                     text_description="Wszystkie rachunki dla których został zarejestrowany aneks o doradztwo inwestycyjne.")
             self.summary_dataframe = excel_workbook.summary_dataframe
             self.merge_statistics_dataframe = excel_workbook.merge_statistics_dataframe
@@ -134,7 +134,7 @@ class Mate(ReportModel):
             return TextEnum.CREATE_ERROR
 
         try:
-            excel_workbook.save_to_excel({f"f2f_baza_mate": f2f}, merge_on=["rachunek"])
+            excel_workbook.save_to_excel({f"f2f_baza_mate": f2f}, merge_on=["kod_klienta"])
         except Exception as e:
             print(f"Mate(): create_report  Error zapisywania raportu : {e}")
             dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Błąd zapisywania raportu {e}", head='error')

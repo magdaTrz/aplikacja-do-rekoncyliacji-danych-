@@ -236,18 +236,18 @@ class SaldaPw(ReportModel):
                 report_saldo_pl = excel_workbook.create_f2f_report(
                     dataframe_1=dataframe_ext_saldo_pl,
                     dataframe_2=dataframe_tgt_saldo_pl,
-                    # sheet_name="saldo_RachPapier_PL",
                     merge_on_cols=['rachunek', 'kod_papieru', 'gielda', 'id_depozyt',
                                    'status_aktyw', 'klasa_konta'],
+                    compare_cols=['saldo'],
                     text_description="Stany papierów na rachunkach klientowskich oraz wewnętrznych, zagregowanych "
                                      "wg pól: giełda, id_depozyt, status_aktyw, klasa_konta Papiery notowane na GPW")
                 del dataframe_ext_saldo_pl, dataframe_tgt_saldo_pl
                 report_saldo_zagr = excel_workbook.create_f2f_report(
                     dataframe_1=dataframe_ext_saldo_zagr,
                     dataframe_2=dataframe_tgt_saldo_zagr,
-                    # sheet_name="saldo_RachPapier_ZAGR",
                     merge_on_cols=['rachunek', 'kod_papieru', 'gielda', 'id_depozyt',
                                    'status_aktyw', 'klasa_konta'],
+                    compare_cols = ['saldo'],
                     text_description="Stany papierów na rachunkach klientowskich oraz wewnętrznych, zagregowanych wg pól: "
                                      "giełda, id_depozyt, status_aktyw, klasa_konta Papiery notowane poza GPW (zagranica)")
             self.summary_dataframe = excel_workbook.summary_dataframe
@@ -262,8 +262,8 @@ class SaldaPw(ReportModel):
         try:
             excel_workbook.save_to_excel({f"saldo_RachPapier_PL": report_saldo_pl,
                                           f"saldo_RachPapier_ZAGR": report_saldo_zagr},
-                                         merge_on=['rachunek', 'kod_papieru', 'gielda', 'id_depozyt',
-                                   'status_aktyw', 'klasa_konta'])
+                                         merge_on=['rachunek', 'kod_papieru', 'gielda', 'id_depozyt', 'status_aktyw',
+                                                   'klasa_konta'])
         except Exception as e:
             print(f"SaldaPw(): create_report  Error zapisywania raportu : {e}")
             dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Błąd zapisywania raportu {e}", head='error')
