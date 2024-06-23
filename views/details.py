@@ -19,6 +19,7 @@ class DetailsView(Frame):
 
         style = ttk.Style()
         style.configure("Treeview", foreground="black", rowheight=25, font=("Courier New", 8))
+
         # style heading
         style.configure("Treeview.Heading", font=("Courier New", 8, 'bold'))
         style.map("Treeview", background=[('selected', '#9E3B28')], foreground=[('selected', 'white')])
@@ -64,8 +65,8 @@ class DetailsView(Frame):
         self.treeview_widget = ttk.Treeview(self.treeview_frame)
         self.treeview_widget.place(relheight=1, relwidth=1)
 
-        treescrolly = tk.Scrollbar(self.treeview_frame, orient="vertical", command=self.treeview_widget.yview)
-        treescrollx = tk.Scrollbar(self.treeview_frame, orient="horizontal", command=self.treeview_widget.xview)
+        treescrolly = tkinter.Scrollbar(self.treeview_frame, orient="vertical", command=self.treeview_widget.yview)
+        treescrollx = tkinter.Scrollbar(self.treeview_frame, orient="horizontal", command=self.treeview_widget.xview)
         self.treeview_widget.configure(xscrollcommand=treescrollx.set, yscrollcommand=treescrolly.set)
         treescrollx.pack(side="bottom", fill="x")
         treescrolly.pack(side="right", fill="y")
