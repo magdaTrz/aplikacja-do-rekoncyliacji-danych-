@@ -146,17 +146,35 @@ class StageController:
                                          text=f"Nie znaleziono pliku potrzebnego do wygenerowania plików pomocniczych.")
 
     def handle_dict_updates(self) -> None:
-        self.model.dict_update.update_KSFIN_dict()
-        self.model.dict_update.update_KSGPW_dict()
-        self.model.dict_update.update_TRANS_dict()
-        style = ttk.Style()
-        style.configure("Green.TButton", background="green", foreground="green")
-        style.map("Green.TButton",
-                  background=[("pressed", "green")],
-                  foreground=[("pressed", "green")])
-        self.frame.update_dictionaries_btn.config(style="Green.TButton")
-        self.frame.show_popup_window(title='Zakończono', text=f"Poprawnie zakończono aktualizację słowników.")
-        return
+        missing_files = self.model.dict_update.check_files_in_folder(
+            ["out_dic_rachunek_klasa_konta_status_aktyw.unl",
+             "out_dic_klasa_konta_status_aktyw.unl",
+             "out_dic_spwr_konto_subkonto.unl",
+             "out_dic_konto_subkonto.unl",
+             "out_dic_gielda_id_depozyt.unl",
+             "out_dic_kody_operacji.unl"
+             ])
+        if missing_files == 'FolderNotExists':
+            self.frame.show_popup_window(title='Błąd',
+                                         text=f"W wybranym folderze brakuje plików słownikowych.")
+        else:
+            self.model.dict_update.update_KSFIN_dict()
+            self.model.dict_update.update_KSGPW_dict()
+            style = ttk.Style()
+            style.configure("Green.TButton", background="green", foreground="green")
+            style.map("Green.TButton",
+                      background=[("pressed", "green")],
+                      foreground=[("pressed", "green")])
+            self.frame.update_dictionaries_btn.config(style="Green.TButton")
+            if not missing_files:
+                self.frame.show_popup_window(title='Zakończono',
+                                             text=f"Poprawnie zakończono aktualizację słowników.")
+            else:
+                missing_files_str = ', '.join(missing_files)
+                self.frame.show_popup_window(title='Błąd',
+                                             text=f"W folderze brakuje plików: {missing_files_str}.\n Pełna "
+                                                  f"aktualizacja plików nie została wykonana")
+            return
 
     def handle_excel_summary(self) -> None:
         print('handle_excel_summary:')

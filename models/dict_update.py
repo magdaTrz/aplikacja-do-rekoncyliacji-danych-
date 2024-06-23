@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import pandas
 from pandas.errors import ParserError
@@ -45,20 +46,63 @@ class DictUpdate(ObservableModel):
         print(f'set_path(): {path}')
         self._path_dict_folder = path
 
+    def check_files_in_folder(self, file_list):
+        folder = Path(self._path_dict_folder)
+
+        if not folder.exists():
+            return 'FolderNotExists'
+
+        missing_files = []
+
+        for file_name in file_list:
+            file_path = folder / file_name
+            if not file_path.exists():
+                missing_files.append(file_name)
+
+        return missing_files
+
+    def update_KSFIN_dict(self) -> None:
+        self.get_dict_konto_fin()
+        self.get_dict_konto_subkonto()
+        self.get_dict_spwr_konto_subkonto()
+        return
+
+    def update_KSGPW_dict(self):
+        self.get_dict_gielda_depozyt()
+        self.get_dict_rachunki()
+        self.get_dict_klasa_konta_status_aktyw()
+        self.get_dict_rachunek_klasa_konta_status_aktyw()
+        return
+
     def get_dict_gielda_depozyt(self) -> dict:
-        path = os.path.join(self._path_dict_folder, 'out_dic_gielda_id_depozyt.unl')
-        dict_gielda_depozyt_df = pandas.read_csv(path, sep='|', header=None)
-        dict_gielda_depozyt = {}
-        for index, row in dict_gielda_depozyt_df.iterrows():
-            key = row[0]
-            values = (row[1], row[2])
-            dict_gielda_depozyt[key] = values
-        self.dict_gielda_depozyt = dict_gielda_depozyt
+        try:
+            path = os.path.join(self._path_dict_folder, 'out_dic_gielda_id_depozyt.unl')
+            dict_gielda_depozyt_df = pandas.read_csv(path, sep='|', header=None)
+            dict_gielda_depozyt = {}
+            for index, row in dict_gielda_depozyt_df.iterrows():
+                key = row[0]
+                values = (row[1], row[2])
+                dict_gielda_depozyt[key] = values
+            self.dict_gielda_depozyt = dict_gielda_depozyt
+        except FileNotFoundError or ParserError:
+            dict_gielda_depozyt = {1: ('WWA', 'KDPW'), 2: ('WWA', 'KDPW'), 3: ('WWA', 'KDPW'), 4: ('WWA', 'KDPW'),
+                                   5: ('WWA', 'KDPW'), 6: ('WWA', 'KDPW'), 7: ('WWA', 'KDPW'), 8: ('WWA', 'KDPW'),
+                                   9: ('WWA', 'KDPW'), 10: ('WWA', 'KDPW'), 11: ('VSE', 'KBCD'), 12: ('EUN', 'KBCD'),
+                                   13: ('HEX', 'KBCD'), 14: ('GXE', 'KBCD'), 15: ('BME', 'KBCD'), 16: ('SSX', 'KBCD'),
+                                   17: ('NYS', 'KBCD'), 18: ('LSE', 'KBCD'), 19: ('BIT', 'KBCD'), 20: ('NSD', 'KBCD'),
+                                   21: ('SSE', 'KBCD'), 22: ('CME', 'KBCD'), 23: ('NYS', 'KBCD'), 24: ('LSE', 'KBCD'),
+                                   25: ('MON', 'KBCD'), 26: ('WWA', 'KDPW'), 27: ('WWA', 'KDPW'), 28: ('WWA', 'KDPW'),
+                                   29: ('WWA', 'KDPW'), 30: ('WWA', 'KDPW'), 31: ('WWA', 'KDPW'), 32: ('WWA', 'KDPW'),
+                                   33: ('WWA', 'KDPW'), 34: ('WWA', 'KDPW'), 35: ('WWA', 'KDPW'), 36: ('WWA', 'KDPW'),
+                                   37: ('OTC', 'KBCD'), 38: ('OTC', 'BASA'), 39: ('WAS', 'BNYM'), 40: ('NSD', 'KBCD'),
+                                   41: ('EFR', 'KBCD'), 42: ('EUB', 'KBCD'), 43: ('EUN', 'KBCD'), 44: ('EUP', 'KBCD'),
+                                   45: ('BON', 'KBCD')}
         return dict_gielda_depozyt
 
     def get_dict_rachunki(self) -> dict:
         try:
-            df = pandas.read_csv(f'{self._path_dict_folder}\out_dic_rachunek_klasa_konta_status_aktyw.unl', sep='|', on_bad_lines='warn')
+            df = pandas.read_csv(f'{self._path_dict_folder}\out_dic_rachunek_klasa_konta_status_aktyw.unl', sep='|',
+                                 on_bad_lines='warn')
             dict_rachunki = df.iloc[:, 0].tolist()
             print(f'   PW: Załadowano słownik out_dic_klasa_konta_status_aktyw na podstawie pliku. ')
             dispatcher.send(signal=UPDATE_TEXT_SIGNAL,
@@ -73,16 +117,15 @@ class DictUpdate(ObservableModel):
         self.dict_rachunki = dict_rachunki
         return dict_rachunki
 
-    def update_KSGPW_dict(self) -> None:
-        pass
-
     def get_dict_klasa_konta_status_aktyw(self) -> None:
         try:
             dict_klasa_konta_status_aktyw = self.create_dic('out_dic_klasa_konta_status_aktyw.unl',
                                                             ['konto_src', 'kod_src', 'konto_tgt', 'status_aktyw'],
                                                             len_src_cols=2)
             print(f'   PW: Załadowano słownik out_dic_klasa_konta_status_aktyw na podstawie pliku. ')
-            dispatcher.send(signal=UPDATE_TEXT_SIGNAL, message=f"Załadowano słownik out_dic_klasa_konta_status_aktyw na podstawie pliku.", head='dict')
+            dispatcher.send(signal=UPDATE_TEXT_SIGNAL,
+                            message=f"Załadowano słownik out_dic_klasa_konta_status_aktyw na podstawie pliku.",
+                            head='dict')
         except FileNotFoundError:
             dict_klasa_konta_status_aktyw = {'1010000': ('1', 'poz'), '110tech': ('1', 'pdst_tech'),
                                              '1100000': ('1', 'pdst'),
@@ -105,12 +148,6 @@ class DictUpdate(ObservableModel):
                                              '2220000': ('3o', 'tech'),
                                              '1480000': ('1', 'blk_kom_inne')}
         return dict_klasa_konta_status_aktyw
-
-    def update_KSFIN_dict(self) -> None:
-        print('Dzieje się FIN')
-        self.get_dict_konto_fin()
-        print(self._path_dict_folder)
-        return
 
     def get_dict_rachunek_klasa_konta_status_aktyw(self) -> dict:
         try:
@@ -195,11 +232,11 @@ class DictUpdate(ObservableModel):
     def get_dict_konto_subkonto(self):
         try:
             dict_konto_subkonto = self.create_dic_fin('out_dic_konto_subkonto.unl',
-                                                  ['konto_src', 'subkonto_src', 'subkonto_pdst_src', 'konto_tgt',
-                                                   'subkonto_tgt'], len_src_cols=3)
+                                                      ['konto_src', 'subkonto_src', 'subkonto_pdst_src', 'konto_tgt',
+                                                       'subkonto_tgt'], len_src_cols=3)
             print(f'  FIN: Załadowano słownik out_dic_konto_subkonto na podstawie pliku. ')
             dispatcher.send(signal=UPDATE_TEXT_SIGNAL,
-                            message=f"Załadowano słownik out_dic_konto_subkonto na podstawie pliku. ",head='dict')
+                            message=f"Załadowano słownik out_dic_konto_subkonto na podstawie pliku. ", head='dict')
         except FileNotFoundError:
             dict_konto_subkonto = {'10911': ('10901', '100001621'), '1097871': ('10901', '100001520'),
                                    '1097891': ('10901', '100001520'), '1097971': ('10901', '100001520'),
@@ -343,11 +380,12 @@ class DictUpdate(ObservableModel):
     def get_dict_spwr_konto_subkonto(self):
         try:
             dict_spwr_konto_subkonto = self.create_dic_fin('out_dic_spwr_konto_subkonto.unl',
-                                                       ['konto_src', 'subkonto_src', 'subkonto_pdst_src', 'spw_r_src',
-                                                        'konto_tgt', 'subkonto_tgt'], len_src_cols=4)
+                                                           ['konto_src', 'subkonto_src', 'subkonto_pdst_src',
+                                                            'spw_r_src',
+                                                            'konto_tgt', 'subkonto_tgt'], len_src_cols=4)
             print(f'  FIN: Załadowano słownik out_dic_spwr_konto_subkonto na podstawie pliku. ')
             dispatcher.send(signal=UPDATE_TEXT_SIGNAL,
-                            message=f"Załadowano słownik out_dic_spwr_konto_subkonto na podstawie pliku. ",head='dict')
+                            message=f"Załadowano słownik out_dic_spwr_konto_subkonto na podstawie pliku. ", head='dict')
         except FileNotFoundError:
             dict_spwr_konto_subkonto = {'170552521': ('17000', '1'), '170552520': ('17000', '2'),
                                         '170552421': ('17000', '1'), '170552121': ('17000', '3'),
@@ -368,9 +406,36 @@ class DictUpdate(ObservableModel):
                                         }
         return dict_spwr_konto_subkonto
 
-    def update_TRANS_dict(self) -> None:
-        print('Dzieje się TRANS')
-        return
+    def get_dic_gielda_id_depozyt(self):
+        try:
+            out_dic_gielda_id_depozyt = pandas.read_csv(fr'{self._path_dict_folder}\out_dic_gielda_id_depozyt.unl',
+                                                        sep='|', header=None, low_memory=False)
+            print('   Załadowano słownik out_dic_gielda_id_depozyt na podstawie pliku. ')
+            dispatcher.send(signal=UPDATE_TEXT_SIGNAL,
+                            message=f"Załadowano słownik out_dic_gielda_id_depozyt na podstawie pliku.", head='dict')
+            out_dic_gielda_id_depozyt = out_dic_gielda_id_depozyt.rename(columns={0: 'kod_rynku', 1: 'gielda',
+                                                                                  2: 'id_depozyt', 3: 'rynekzlecen',
+                                                                                  4: 'zlc_rodzaj_znak_1',
+                                                                                  5: 'przedrostek', 6: 'wyroznik'})
+            return out_dic_gielda_id_depozyt[
+                ['kod_rynku', 'gielda', 'id_depozyt', 'rynekzlecen', 'zlc_rodzaj_znak_1', 'przedrostek', 'wyroznik']]
+        except FileNotFoundError:
+            dispatcher.send(signal=UPDATE_TEXT_SIGNAL,
+                            message=f"Brak słownika out_dic_gielda_id_depozyt w folderze \n{self._path_dict_folder}.",
+                            head='dict')
+
+    def get_dic_kody_operacji(self):
+        try:
+            out_dict_kody_operacji = pandas.read_csv(fr'{self._path_dict_folder}\out_dic_kody_operacji.unl', sep='|',
+                                                     header=None, low_memory=False)
+            print('   Załadowano słownik out_dict_kody_operacji na podstawie pliku. ')
+            out_dict_kody_operacji = out_dict_kody_operacji.rename(columns={0: 'kod_operacji_lp', 2: 'kdpw_tryb_obr',
+                                                                            3: 'kdpw_kod_rnk'})
+            return out_dict_kody_operacji[['kod_operacji_lp', 'kdpw_tryb_obr', 'kdpw_kod_rnk']]
+        except FileNotFoundError:
+            dispatcher.send(signal=UPDATE_TEXT_SIGNAL,
+                            message=f"Brak słownika out_dic_kody_operacji w folderze \n{self._path_dict_folder}.",
+                            head='dict')
 
     @staticmethod
     def map_values_to_columns(dataframe, column_to_map, col1_to_fill, col2_to_fill, map_dict, col3_to_fill=None):
